@@ -13,11 +13,22 @@ from sklearn import datasets
 
 from src.MyKNeirestNeighbor import MyKNeirestNeighbor
 
+def partitionningDataset(dataset, percent):
+    pass
+
+def getAccuracy():
+    pass
+
+def getMeanSquaredError():
+    pass
+
 def main():
     try:
-        # messy case
         dataset = datasets.load_wine()
-        guess = [[1.423e+02, 1.010e+00, 2.430e+20, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+00, 1.040e+00, 3.920e+00, 1.065e+03]]
+        # messy case
+        # guess = [[1.423e+02, 1.010e+00, 2.430e+20, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+00, 1.040e+00, 3.920e+00, 1.065e+03]]
+        # complexe case
+        guess = [[1.423e+02, 1.010e+00, 2.430e+02, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+02, 1.040e+03, 3.920e+00, 1.065e+03]]
 
         # simple case
         # data = [[0, 2], [1, 2], [2, 3], [3, 5]]
@@ -26,7 +37,7 @@ def main():
 
         neigh = KNeighborsClassifier(n_neighbors=3)
         neigh.fit(dataset.data, dataset.target)
-        print("sklearn: {}".format(neigh.predict(guess)))
+        # print("sklearn prediction: {} with accurency of {}".format(neigh.predict(guess), ))
 
         myneigh = MyKNeirestNeighbor(3)
         myneigh.fit(dataset.data, dataset.target)
