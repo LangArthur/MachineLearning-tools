@@ -17,8 +17,14 @@ class MyKNeirestNeighbor():
     # @param n number of neighbor used in the algorithm
     def __init__(self, n = 0):
         self.n = n
-        self.trainedData = [] #list of tuple containing the point associate with its class
-        self.isFit = False
+        self.trainedData = [] # list of tuple containing the point associate with its class
+        self.isFit = False # set to true when a dataset is fit
+
+    ## setN
+    # setter for n
+    # @param n new n
+    def setN(self, n):
+        self.n = n
 
     ## fit
     # train the algorithm
@@ -35,6 +41,7 @@ class MyKNeirestNeighbor():
     # @param self object pointer
     # @param data all the data
     # @param target all the classes for the data (previous parameter)
+    # @param return True if everything is good
     def checkFitData(self, data, target):
         if (len(data) < 1):
             raise ValueError("Error: no data is given for the training.")
@@ -50,7 +57,10 @@ class MyKNeirestNeighbor():
     # predict the class label for the element
     # @param self object pointer
     # @param testSample element to predict
+    # @return prediction, a list with an element for each value to be predicted
     def predict(self, testSample):
+        if (self.isFit != True):
+            raise ValueError("Error: no dataset has been fit.")
         res = []
         for sample in testSample:
             dist = []
@@ -64,7 +74,12 @@ class MyKNeirestNeighbor():
         return res
 
     ## computeDistance
-    # compute the squared euclidian distance
+    # compute the absolute difference of both point.
+    # note: I did not use the euclidian distance to prevent overflow
+    # @param self object pointer
+    # @param p1 first point
+    # @param p2 second point
+    # @return value
     def computeDistance(self, p1, p2):
         res = 0
         # set size to 1 if the points are not arrays
@@ -72,5 +87,5 @@ class MyKNeirestNeighbor():
         if (size != len(p2)):
             raise ValueError("Error: the point has not the same number of arguments as the data set")
         for i in range(0, size):
-            res += (p2[i] - p1[i]) ** 2
+            res += abs(p2[i] - p1[i])
         return res

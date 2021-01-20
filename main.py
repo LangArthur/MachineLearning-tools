@@ -14,31 +14,27 @@ from sklearn import datasets
 from src.MyKNeirestNeighbor import MyKNeirestNeighbor
 
 def main():
-
     try:
-        x = [[0, 2], [1, 2], [2, 3], [3, 5]]
-        y = [1, 1, 0, 0]
-        toGuess = [[1, 1]]
-        myneigh = MyKNeirestNeighbor(3)
-        myneigh.fit(x, y)
-        print("My kkn: {}".format(myneigh.predict(toGuess)))
+        # messy case
+        dataset = datasets.load_wine()
+        guess = [[1.423e+02, 1.010e+00, 2.430e+20, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+00, 1.040e+00, 3.920e+00, 1.065e+03]]
+
+        # simple case
+        # data = [[0, 2], [1, 2], [2, 3], [3, 5]]
+        # target = [1, 1, 0, 0]
+        # guess = [[1, 1]]
 
         neigh = KNeighborsClassifier(n_neighbors=3)
-        neigh.fit(x, y)
-        print("sklearn: {}".format(neigh.predict(toGuess)))
+        neigh.fit(dataset.data, dataset.target)
+        print("sklearn: {}".format(neigh.predict(guess)))
 
+        myneigh = MyKNeirestNeighbor(3)
+        myneigh.fit(dataset.data, dataset.target)
+        print("My kkn: {}".format(myneigh.predict(guess)))
+        return 0
     except Exception as e:
         print(e, file=sys.stderr)
-    # dataset = datasets.load_wine()
-    # guess = [6.1, 3.3,  5.9, 1.8]
-
-    # print()
-    # print(neigh.predict_proba([[0.9]]))
-
-
-    # neigh.fit(dataset.data, dataset.target)
-
-    return 0
+        return 1
 
 if __name__ == "__main__":
     main()
