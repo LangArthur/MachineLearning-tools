@@ -6,20 +6,37 @@
 # main.py
 #
 
+import sys
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import datasets
 
+from src.MyKNeirestNeighbor import MyKNeirestNeighbor
+
 def main():
 
-    iris = datasets.load_iris()
-    guess = [6.1, 3.3,  5.9, 1.8]
+    try:
+        x = [[0, 2], [1, 2], [2, 3], [3, 5]]
+        y = [1, 1, 0, 0]
+        toGuess = [[1, 1]]
+        myneigh = MyKNeirestNeighbor(3)
+        myneigh.fit(x, y)
+        print("My kkn: {}".format(myneigh.predict(toGuess)))
 
-    # X = [[0], [1], [2], [3]]
-    # y = [0, 0, 1, 1]
-    # neigh = KNeighborsClassifier(n_neighbors=3)
-    # neigh.fit(iris.data, guess)
-    # print(neigh.predict([[1.1]]))
+        neigh = KNeighborsClassifier(n_neighbors=3)
+        neigh.fit(x, y)
+        print("sklearn: {}".format(neigh.predict(toGuess)))
+
+    except Exception as e:
+        print(e, file=sys.stderr)
+    # dataset = datasets.load_wine()
+    # guess = [6.1, 3.3,  5.9, 1.8]
+
+    # print()
     # print(neigh.predict_proba([[0.9]]))
+
+
+    # neigh.fit(dataset.data, dataset.target)
 
     return 0
 
