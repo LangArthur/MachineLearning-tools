@@ -1,4 +1,4 @@
-### MyK-Neirest-Neighbor
+# MyK-Neirest-Neighbor
 
 Implementation of the K-Neirest Neighbor base on the sklearn implementation.
 
@@ -8,7 +8,7 @@ This project is for a pedagogic purpose.
 
 No specific packages are needed.
 
-# basic example
+### basic example
 
 data variable is the raw dataset
 target variable is the classes of your data
