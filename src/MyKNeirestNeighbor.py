@@ -33,7 +33,8 @@ class MyKNeirestNeighbor():
     ## fit
     # train the algorithm
     # @param self object pointer
-    # @param n number of neighbor used in the algorithm
+    # @param data data to train on
+    # @param target name of each data features
     def fit(self, data, target):
         if (self.checkFitData(data, target)):
             for i in range(0, len(data)):
