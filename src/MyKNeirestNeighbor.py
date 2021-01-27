@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 #
 # Created on Wed Jan 20 2021
 #
@@ -6,6 +7,9 @@
 #
 
 import sys
+
+from src.EvaluationResult import EvaluationResult
+from src.evaluation import evaluateAccurancy
 
 ## MyKNeirestNeighbor
 # implementation of the k-neirest neighbor algorithm.
@@ -88,4 +92,23 @@ class MyKNeirestNeighbor():
             raise ValueError("Error: the point has not the same number of arguments as the data set")
         for i in range(0, size):
             res += abs(p2[i] - p1[i])
+        return res
+
+    def evaluate(self, prediction, reality):
+        name = self._getEvaluationName(reality, prediction)
+        res = EvaluationResult(name)
+        for predict, real in zip(prediction, reality):
+            res.confusionMatrix.add(predict, real)
+        res.accurancy = evaluateAccurancy(res.confusionMatrix, len(reality))
+        return res
+
+    def _getEvaluationName(self, reality, prediction):
+        res = []
+        for elem in reality:
+            if (not(elem in res)):
+                res.append(elem)
+        for elem in prediction:
+            if (not(elem in res)):
+                res.append(elem)
+        res.sort()
         return res
