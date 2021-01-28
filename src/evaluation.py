@@ -8,7 +8,7 @@
 
 import numpy
 
-from src.EvaluationResult import ConfusionMatrix
+from src.EvaluationResult import *
 
 # https://towardsdatascience.com/why-and-how-to-cross-validate-a-model-d6424b45261f
 # https://towardsdatascience.com/classification-metrics-confusion-matrix-explained-7c7abe4e9543
@@ -24,15 +24,30 @@ def crossValidation(nbFolds, dataset, algorithm):
     indices = numpy.arange(dataset.data.shape[0])
     numpy.random.shuffle(indices)
     # split in folds
-    data = numpy.split(dataset.data[indices], nbFolds)
-    target = numpy.split(dataset.target[indices], nbFolds)
+    data = numpy.array_split(dataset.data[indices], nbFolds)
+    target = numpy.array_split(dataset.target[indices], nbFolds)
     algorithm.fit(data[0], target[0])
-    res = []
+    foldEvaluations = []
+    # execute algorithm
     for i in range(nbFolds - 1):
         predict = algorithm.predict(data[i + 1])
-        res.append(algorithm.evaluate(predict, target[i + 1]))
-    for mat in res:
-        print(mat)
+        foldEvaluations.append(algorithm.evaluate(predict, target[i + 1]))
+    # merge all the result
+    res = EvaluationResult(foldEvaluations[0].confusionMatrix.labels)
+    setFirstMatrix = False
+    for evaluation in foldEvaluations:
+        res.accurancy += evaluation.accurancy
+        res.precision += evaluation.precision
+        res.recall += evaluation.recall
+        if (not(setFirstMatrix)):
+            res.confusionMatrix = evaluation.confusionMatrix
+            setFirstMatrix = True
+        else:
+            res.confusionMatrix.mean(evaluation.confusionMatrix)
+    res.accurancy /= len(foldEvaluations)
+    res.precision /= len(foldEvaluations)
+    res.recall /= len(foldEvaluations)
+    return res
 
 def partitionningDataset(data, target, percent):
     if (len(data) < 4):

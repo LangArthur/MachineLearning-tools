@@ -94,7 +94,6 @@ class MyKNeirestNeighbor():
             raise ValueError("Error: the point has not the same number of arguments as the data set")
         for i in range(0, size):
             res += ((p2[i] - p1[i]) ** 2)
-            # res += abs(p2[i] - p1[i])
         return res
 
     def evaluate(self, prediction, reality):
