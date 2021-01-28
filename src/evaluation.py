@@ -8,7 +8,7 @@
 
 import numpy
 
-from src.EvaluationResult import *
+from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 
 # https://towardsdatascience.com/why-and-how-to-cross-validate-a-model-d6424b45261f
 # https://towardsdatascience.com/classification-metrics-confusion-matrix-explained-7c7abe4e9543
@@ -33,20 +33,22 @@ def crossValidation(nbFolds, dataset, algorithm):
         predict = algorithm.predict(data[i + 1])
         foldEvaluations.append(algorithm.evaluate(predict, target[i + 1]))
     # merge all the result
-    res = EvaluationResult(foldEvaluations[0].confusionMatrix.labels)
-    setFirstMatrix = False
+    res = EvaluationResult()
+    res.confusionMatrix.reserve(foldEvaluations[0].confusionMatrix.labels)
+    # setFirstMatrix = False
     for evaluation in foldEvaluations:
-        res.accurancy += evaluation.accurancy
-        res.precision += evaluation.precision
-        res.recall += evaluation.recall
-        if (not(setFirstMatrix)):
-            res.confusionMatrix = evaluation.confusionMatrix
-            setFirstMatrix = True
-        else:
-            res.confusionMatrix.mean(evaluation.confusionMatrix)
-    res.accurancy /= len(foldEvaluations)
-    res.precision /= len(foldEvaluations)
-    res.recall /= len(foldEvaluations)
+        res = res + evaluation
+    #     res.accuracy += evaluation.accuracy
+    #     res.precision += evaluation.precision
+    #     res.recall += evaluation.recall
+    #     if (not(setFirstMatrix)):
+    #         res.confusionMatrix = evaluation.confusionMatrix
+    #         setFirstMatrix = True
+    #     else:
+    #         res.confusionMatrix.mean(evaluation.confusionMatrix)
+    # res.accuracy /= len(foldEvaluations)
+    # res.precision /= len(foldEvaluations)
+    # res.recall /= len(foldEvaluations)
     return res
 
 def partitionningDataset(data, target, percent):
@@ -61,7 +63,7 @@ def partitionningDataset(data, target, percent):
         splitPos = 1
     return data[:splitPos], data[splitPos:], target[:splitPos], target[splitPos:]
 
-def evaluateAccurancy(confMatrix, size):
+def evaluateAccuracy(confMatrix, size):
     res = 0
     for i in range(0, confMatrix.len()):
         res += confMatrix.data[i][i]
@@ -75,4 +77,3 @@ def evaluateRecall(confMatrix, size):
 
 def getMeanSquaredError():
     pass
-

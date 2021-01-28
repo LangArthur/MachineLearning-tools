@@ -8,8 +8,8 @@
 
 import sys
 
-from src.EvaluationResult import EvaluationResult
-from src.evaluation import evaluateAccurancy
+from src.evaluationDataStructure import EvaluationResult
+from src.evaluation import evaluateAccuracy, EvaluationResult
 
 ## MyKNeirestNeighbor
 # implementation of the k-neirest neighbor algorithm.
@@ -98,10 +98,11 @@ class MyKNeirestNeighbor():
 
     def evaluate(self, prediction, reality):
         name = self._getEvaluationName(reality, prediction)
-        res = EvaluationResult(name)
+        res = EvaluationResult()
+        res.confusionMatrix.reserve(name)
         for predict, real in zip(prediction, reality):
             res.confusionMatrix.add(predict, real)
-        res.accurancy = evaluateAccurancy(res.confusionMatrix, len(reality))
+        res.accuracy = evaluateAccuracy(res.confusionMatrix, len(reality))
         return res
 
     def _getEvaluationName(self, reality, prediction):
