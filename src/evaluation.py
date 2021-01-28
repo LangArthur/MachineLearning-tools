@@ -10,6 +10,10 @@ import numpy
 
 from src.EvaluationResult import ConfusionMatrix
 
+# https://towardsdatascience.com/why-and-how-to-cross-validate-a-model-d6424b45261f
+# https://towardsdatascience.com/classification-metrics-confusion-matrix-explained-7c7abe4e9543
+# https://towardsdatascience.com/accuracy-precision-recall-or-f1-331fb37c5cb9
+
 ## crossValidation
 # apply a cross validation on a model
 def crossValidation(nbFolds, dataset, algorithm):

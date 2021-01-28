@@ -70,11 +70,12 @@ class MyKNeirestNeighbor():
         for sample in testSample:
             dist = []
             for elem in self.trainedData:
-                dist.append(self.computeDistance(sample, elem[0]))
+                dist.append((self.computeDistance(sample, elem[0]), elem[1]))
             sampleRes = 0
             dist.sort()
             for i in range(0, self.n):
-                sampleRes += self.trainedData[i][1]
+                sampleRes += dist[i][1]
+            # print(sampleRes / self.n, round(sampleRes / self.n))
             res.append(int(round(sampleRes / self.n, 0)))
         return res
 
@@ -92,7 +93,8 @@ class MyKNeirestNeighbor():
         if (size != len(p2)):
             raise ValueError("Error: the point has not the same number of arguments as the data set")
         for i in range(0, size):
-            res += abs(p2[i] - p1[i])
+            res += ((p2[i] - p1[i]) ** 2)
+            # res += abs(p2[i] - p1[i])
         return res
 
     def evaluate(self, prediction, reality):
