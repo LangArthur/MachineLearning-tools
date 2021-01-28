@@ -31,6 +31,10 @@ class ConfusionMatrix():
             res += '\n'
         return res
 
+    ## reserve
+    # init matrix with a specific size and specific label
+    # @param self object pointer
+    # @param labels labels used in the matrix
     def reserve(self, labels):
         self.labels = labels
         self.data = [[ 0 for _ in labels] for _ in labels]
@@ -72,6 +76,9 @@ class ConfusionMatrix():
                     res.data[i][j] = self.data[i][j] + other.data[i][j] / 2
             return res
 
+
+## EvaluationResult
+# structure that contain all the result from an anlgorithm evaluation
 @dataclass
 class EvaluationResult:
     accuracy: float

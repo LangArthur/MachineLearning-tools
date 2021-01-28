@@ -35,22 +35,14 @@ def crossValidation(nbFolds, dataset, algorithm):
     # merge all the result
     res = EvaluationResult()
     res.confusionMatrix.reserve(foldEvaluations[0].confusionMatrix.labels)
-    # setFirstMatrix = False
     for evaluation in foldEvaluations:
         res = res + evaluation
-    #     res.accuracy += evaluation.accuracy
-    #     res.precision += evaluation.precision
-    #     res.recall += evaluation.recall
-    #     if (not(setFirstMatrix)):
-    #         res.confusionMatrix = evaluation.confusionMatrix
-    #         setFirstMatrix = True
-    #     else:
-    #         res.confusionMatrix.mean(evaluation.confusionMatrix)
-    # res.accuracy /= len(foldEvaluations)
-    # res.precision /= len(foldEvaluations)
-    # res.recall /= len(foldEvaluations)
     return res
 
+## Partitionning a dataset
+# @param data data to be split
+# @param target class of the associated data
+# @return return the training data (first part), the test data (second part), the training labels and the test label
 def partitionningDataset(data, target, percent):
     if (len(data) < 4):
         raise ValueError("Error: can't split because the dataset is to little.")
@@ -63,6 +55,10 @@ def partitionningDataset(data, target, percent):
         splitPos = 1
     return data[:splitPos], data[splitPos:], target[:splitPos], target[splitPos:]
 
+## evaluateAccuracy
+# compute the accuracy
+# @param confMatrix confusion matrix of the experiment
+# @param size size of the total number of experiment
 def evaluateAccuracy(confMatrix, size):
     res = 0
     for i in range(0, confMatrix.len()):

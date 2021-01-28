@@ -96,6 +96,10 @@ class MyKNeirestNeighbor():
             res += ((p2[i] - p1[i]) ** 2)
         return res
 
+    ## evaluate
+    # evalutate the predictions
+    # @param prediction data get from the prediction
+    # @param reality real data values
     def evaluate(self, prediction, reality):
         name = self._getEvaluationName(reality, prediction)
         res = EvaluationResult()
@@ -105,6 +109,7 @@ class MyKNeirestNeighbor():
         res.accuracy = evaluateAccuracy(res.confusionMatrix, len(reality))
         return res
 
+    # return the names of the class of the evaluation
     def _getEvaluationName(self, reality, prediction):
         res = []
         for elem in reality:

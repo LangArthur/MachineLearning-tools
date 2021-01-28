@@ -25,34 +25,30 @@ def compare(res1, res2):
             print(mk, sk)
 
 def main():
-    try:
-        dataset = datasets.load_iris()
+    dataset = datasets.load_iris()
 
-        # dataset = datasets.load_wine()
-        # messy case
-        # guess = [[1.423e+02, 1.010e+00, 2.430e+20, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+00, 1.040e+00, 3.920e+00, 1.065e+03]]
-        # guess = [[1.423e+02, 1.010e+00, 2.430e+02, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+02, 1.040e+03, 3.920e+00, 1.065e+03]]
+    # dataset = datasets.load_wine()
+    # messy case
+    # guess = [[1.423e+02, 1.010e+00, 2.430e+20, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+00, 1.040e+00, 3.920e+00, 1.065e+03]]
+    # guess = [[1.423e+02, 1.010e+00, 2.430e+02, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+02, 1.040e+03, 3.920e+00, 1.065e+03]]
 
-        # trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
+    # trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
 
-        # neigh = KNeighborsClassifier(n_neighbors=3)
-        # neigh.fit(trainingData, trainingLabel)
-        # predicSK = neigh.predict(testData)
-        # print(classification_report(testLabel, predicSK))
+    # neigh = KNeighborsClassifier(n_neighbors=3)
+    # neigh.fit(trainingData, trainingLabel)
+    # predicSK = neigh.predict(testData)
+    # print(classification_report(testLabel, predicSK))
 
-        myneigh = MyKNeirestNeighbor(3)
+    myneigh = MyKNeirestNeighbor(3)
 
-        print(crossValidation(5, dataset, myneigh))
+    print(crossValidation(5, dataset, myneigh))
 
-        # myneigh.fit(trainingData, trainingLabel)
-        # predict = myneigh.predict(testData)
-        # print(myneigh.evaluate(predict, testLabel))
+    # myneigh.fit(trainingData, trainingLabel)
+    # predict = myneigh.predict(testData)
+    # print(myneigh.evaluate(predict, testLabel))
 
-        # compare(testLabel, predict)
-        return 0
-    except Exception as e:
-        print(e, file=sys.stderr)
-        return 1
+    # compare(testLabel, predict)
+    return 0
 
 if __name__ == "__main__":
     main()
