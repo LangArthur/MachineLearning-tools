@@ -1,14 +1,20 @@
-# MyK-Neirest-Neighbor
+# MachineLearning-tools
 
-Implementation of the K-Neirest Neighbor base on the sklearn implementation.
+Implementation of different tools for machine learning.
 
-This project is for a pedagogic purpose.
+This project is for a pedagogic purpose and was developp through my different project in machine learning course.
 
-## Usage
+## Install
 
-No specific packages are needed.
+All the requirement are in the file requirement.txt
 
-### basic example
+## Content
+
+### Knn Algorithm
+
+Implementation of the K-Neirest Neighbor algorithm.
+
+#### simple example
 
 data variable is the raw dataset
 target variable is the classes of your data
@@ -21,7 +27,6 @@ guess = [[1, 1]]
 neigh = MyKNeirestNeighbor(3)
 neigh.fit(data, target)
 print("predicted class: {}".format(neigh.predict(guess)))
-
 ```
 
 ## Authors
