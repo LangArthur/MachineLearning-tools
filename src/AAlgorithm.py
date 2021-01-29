@@ -24,7 +24,3 @@ class AAlgorithm(ABC):
     @abstractmethod
     def predict(self, testSample):
         pass
-
-    @abstractmethod
-    def evaluate(self, reality, prediction):
-        pass

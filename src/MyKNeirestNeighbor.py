@@ -8,8 +8,6 @@
 
 import sys
 
-from src.evaluationDataStructure import EvaluationResult
-from src.evaluation import evaluateAccuracy, EvaluationResult
 from src.AAlgorithm import AAlgorithm
 
 ## MyKNeirestNeighbor
@@ -95,29 +93,4 @@ class MyKNeirestNeighbor(AAlgorithm):
             raise ValueError("Error: the point has not the same number of arguments as the data set")
         for i in range(0, size):
             res += ((p2[i] - p1[i]) ** 2)
-        return res
-
-    ## evaluate
-    # evalutate the predictions
-    # @param prediction data get from the prediction
-    # @param reality real data values
-    def evaluate(self, prediction, reality):
-        name = self._getEvaluationName(reality, prediction)
-        res = EvaluationResult()
-        res.confusionMatrix.reserve(name)
-        for predict, real in zip(prediction, reality):
-            res.confusionMatrix.add(predict, real)
-        res.accuracy = evaluateAccuracy(res.confusionMatrix, len(reality))
-        return res
-
-    # return the names of the class of the evaluation
-    def _getEvaluationName(self, reality, prediction):
-        res = []
-        for elem in reality:
-            if (not(elem in res)):
-                res.append(elem)
-        for elem in prediction:
-            if (not(elem in res)):
-                res.append(elem)
-        res.sort()
         return res

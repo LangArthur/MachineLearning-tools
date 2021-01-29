@@ -9,7 +9,7 @@
 import sys
 import random
 
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import datasets
 
@@ -41,7 +41,9 @@ def main():
     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
 
     myNB.fit(trainingData, trainingLabel)
-    print(myNB.predict(testData))
+    predict = myNB.predict(testData)
+
+    print(evaluate(predict, testLabel))
 
     # print(crossValidation(5, dataset, myneigh))
 

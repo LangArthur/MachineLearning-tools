@@ -60,7 +60,3 @@ class MyNaiveBayes(AAlgorithm):
         num = numpy.exp(-((x - mean) ** 2 / (2 * var) ** 2))
         den = numpy.sqrt(2 * numpy.pi * var)
         return num / den
-
-
-    def evaluate(self, prediction, reality):
-        pass

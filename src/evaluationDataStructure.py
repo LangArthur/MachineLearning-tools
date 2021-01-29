@@ -94,7 +94,7 @@ class EvaluationResult:
 
     def __str__(self):
         res = "Result of the evalutation:\n\taccuracy:\t" + str(self.accuracy) + "\n\tprecision\t" + str(self.precision)
-        res += "\n\trecall:\t\t" + str(self.recall) + "\n\nConfusion Matrix:\n" + self.confusionMatrix.__str__()
+        res += " (not implemented)\n\trecall:\t\t" + str(self.recall) + " (not implemented)\n\nConfusion Matrix:\n" + self.confusionMatrix.__str__()
         return res
 
     def __add__(self, other):

@@ -58,6 +58,31 @@ def partitionningDataset(data, target, percent):
         splitPos = 1
     return data[:splitPos], data[splitPos:], target[:splitPos], target[splitPos:]
 
+## evaluate
+# evalutate the predictions
+# @param prediction data get from the prediction
+# @param reality real data values
+def evaluate(prediction, reality):
+    name = _getEvaluationName(reality, prediction) #TODO rework this part
+    res = EvaluationResult()
+    res.confusionMatrix.reserve(name)
+    for predict, real in zip(prediction, reality):
+        res.confusionMatrix.add(predict, real)
+    res.accuracy = evaluateAccuracy(res.confusionMatrix, len(reality))
+    return res
+
+# return the names of the class of the evaluation
+def _getEvaluationName(reality, prediction):
+    res = []
+    for elem in reality:
+        if (not(elem in res)):
+            res.append(elem)
+    for elem in prediction:
+        if (not(elem in res)):
+            res.append(elem)
+    res.sort()
+    return res
+
 ## evaluateAccuracy
 # compute the accuracy
 # @param confMatrix confusion matrix of the experiment
