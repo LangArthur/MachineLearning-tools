@@ -14,6 +14,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn import datasets
 
 from src.MyKNeirestNeighbor import MyKNeirestNeighbor
+from src.MyNaiveBayes import *
 from src.evaluation import *
 
 def compare(res1, res2):
@@ -32,16 +33,17 @@ def main():
     # guess = [[1.423e+02, 1.010e+00, 2.430e+20, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+00, 1.040e+00, 3.920e+00, 1.065e+03]]
     # guess = [[1.423e+02, 1.010e+00, 2.430e+02, 1.060e+01, 3.270e+02, 2.800e+00, 3.060e+00, 2.800e-01, 2.290e+00, 5.640e+02, 1.040e+03, 3.920e+00, 1.065e+03]]
 
-    # trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
+    # data = dataset.data[:100]
+    # target = dataset.target[:100]
+    # trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
+    trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
 
-    # neigh = KNeighborsClassifier(n_neighbors=3)
-    # neigh.fit(trainingData, trainingLabel)
-    # predicSK = neigh.predict(testData)
-    # print(classification_report(testLabel, predicSK))
+    myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
 
-    myneigh = MyKNeirestNeighbor(3)
+    myNB.fit(trainingData, trainingLabel)
+    print(myNB.predict(testData))
 
-    print(crossValidation(5, dataset, myneigh))
+    # print(crossValidation(5, dataset, myneigh))
 
     # myneigh.fit(trainingData, trainingLabel)
     # predict = myneigh.predict(testData)

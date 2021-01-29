@@ -10,19 +10,20 @@ import sys
 
 from src.evaluationDataStructure import EvaluationResult
 from src.evaluation import evaluateAccuracy, EvaluationResult
+from src.AAlgorithm import AAlgorithm
 
 ## MyKNeirestNeighbor
 # implementation of the k-neirest neighbor algorithm.
 # It is inspired by the implementation of sklearn.
-class MyKNeirestNeighbor():
+class MyKNeirestNeighbor(AAlgorithm):
     
     ## Constructor:
     # @param self object pointer
     # @param n number of neighbor used in the algorithm
     def __init__(self, n = 0):
+        super().__init__("KNN")
         self.n = n
-        self.trainedData = [] # list of tuple containing the point associate with its class
-        self.isFit = False # set to true when a dataset is fit
+        self._trainedData = [] # list of tuple containing the point associate with its class
 
     ## setN
     # setter for n
@@ -38,8 +39,8 @@ class MyKNeirestNeighbor():
     def fit(self, data, target):
         if (self.checkFitData(data, target)):
             for i in range(0, len(data)):
-                self.trainedData.append((data[i], target[i]))
-            self.isFit = True
+                self._trainedData.append((data[i], target[i]))
+            self._isFit = True
 
     ## checkFitData
     # check if the data given to fit is goodly formated
@@ -64,12 +65,12 @@ class MyKNeirestNeighbor():
     # @param testSample element to predict
     # @return prediction, a list with an element for each value to be predicted
     def predict(self, testSample):
-        if (self.isFit != True):
+        if (self._isFit != True):
             raise ValueError("Error: no dataset has been fit.")
         res = []
         for sample in testSample:
             dist = []
-            for elem in self.trainedData:
+            for elem in self._trainedData:
                 dist.append((self.computeDistance(sample, elem[0]), elem[1]))
             sampleRes = 0
             dist.sort()

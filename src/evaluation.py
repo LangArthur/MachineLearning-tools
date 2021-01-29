@@ -16,6 +16,9 @@ from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 
 ## crossValidation
 # apply a cross validation on a model
+# @param nbFolds nb of folds in the cross validation
+# @dataset a dataset formated as the sklearn data set # TODO change this for more modularty
+# @algorithm algorithm that must heritate from AAlgorithm (see AAlgorithm file)
 def crossValidation(nbFolds, dataset, algorithm):
     # check nbFolds
     if (nbFolds < 2):
