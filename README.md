@@ -8,7 +8,19 @@ This project is for a pedagogic purpose and was developp through my different pr
 
 All the requirement are in the file requirement.txt
 
+```
+pip install -r requirement.txt
+```
+
 ## Content
+
+### AAlorithm
+
+All the algorithm implementation follow the AAlgorithm model.
+
+This model has two main method:
+- fit: it prepare your classifier with a training dataset
+- predict: give predictions for the given values
 
 ### Knn Algorithm
 
@@ -28,6 +40,12 @@ neigh = MyKNeirestNeighbor(3)
 neigh.fit(data, target)
 print("predicted class: {}".format(neigh.predict(guess)))
 ```
+
+### Naive Bayes Algorithm
+
+Implementation of the bayes algorithm following the Gaussian method.
+
+
 
 ## Authors
 
