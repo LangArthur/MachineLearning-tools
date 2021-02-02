@@ -7,6 +7,7 @@
 #
 
 import numpy
+import matplotlib.pyplot
 
 from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 
@@ -38,9 +39,9 @@ def crossValidation(nbFolds, dataset, algorithm):
     # merge all the result
     res = EvaluationResult()
     res.confusionMatrix.reserve(foldEvaluations[0].confusionMatrix.labels)
-    for evaluation in foldEvaluations:
-        res = res + evaluation
-    return res
+    for evaluation in foldEvaluations: 
+        res = res + evaluation 
+    return res 
 
 ## Partitionning a dataset
 # @param data data to be split
@@ -63,16 +64,18 @@ def partitionningDataset(data, target, percent):
 # @param prediction data get from the prediction
 # @param reality real data values
 def evaluate(prediction, reality):
-    name = _getEvaluationName(reality, prediction) #TODO rework this part
+    name = _getEvaluationName(prediction, reality) #TODO rework this part
     res = EvaluationResult()
     res.confusionMatrix.reserve(name)
     for predict, real in zip(prediction, reality):
         res.confusionMatrix.add(predict, real)
     res.accuracy = evaluateAccuracy(res.confusionMatrix, len(reality))
+    res.precision = evaluatePrecision(res.confusionMatrix)
+    res.recall = evaluateRecall(res.confusionMatrix)
     return res
 
 # return the names of the class of the evaluation
-def _getEvaluationName(reality, prediction):
+def _getEvaluationName(prediction, reality):
     res = []
     for elem in reality:
         if (not(elem in res)):
@@ -93,11 +96,51 @@ def evaluateAccuracy(confMatrix, size):
         res += confMatrix.data[i][i]
     return res / size
 
-def evaluatePrecision(confMatrix, size):
-    pass
+## evaluatePrecision
+# compute the precision
+# @param confMatrix confusion matrix of the experiment
+def evaluatePrecision(confMatrix):
+    res = {}
+    for i, label in enumerate(confMatrix.labels):
+        res[label] = confMatrix.data[i][i] / sum(confMatrix.data[i])
+    return res
 
-def evaluateRecall(confMatrix, size):
-    pass
+## evaluateRecall
+# compute the recall
+# @param confMatrix confusion matrix of the experiment
+def evaluateRecall(confMatrix):
+    res = {}
+    for i, label in enumerate(confMatrix.labels):
+        res[label] = confMatrix.data[i][i] / sumColumn(confMatrix.data, i)
+    return res
+
+## sumColumn
+# sum a column in an array
+# @param array array with the column
+# @param i index of the column to sum
+def sumColumn(array, i):
+    res = 0
+    for elem in array:
+        res += elem[i]
+    return res
 
 def getMeanSquaredError():
     pass
+
+## rocEvaluation
+# draw the roc curve
+# /!\ for the moment the roc curve consider a two class classification
+def rocEvaluation(prediction, reality):
+    thresolds = [i / 10 for i in range(0, 10)]
+    # for t in range(thresold):
+    #     pass
+    _rocGraph([])
+
+# def _getThreshold():
+
+
+def _rocGraph(data):
+    matplotlib.pyplot.plot(data)
+    matplotlib.pyplot.ylabel('True Positive')
+    matplotlib.pyplot.xlabel('False Positive')
+    matplotlib.pyplot.show()

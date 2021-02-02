@@ -45,6 +45,8 @@ def main():
 
     print(evaluate(predict, testLabel))
 
+    rocEvaluation()
+
     # print(crossValidation(5, dataset, myneigh))
 
     # myneigh.fit(trainingData, trainingLabel)

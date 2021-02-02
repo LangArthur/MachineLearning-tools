@@ -82,7 +82,7 @@ class ConfusionMatrix():
 @dataclass
 class EvaluationResult:
     accuracy: float
-    precision: float
+    precision: {str, float}
     recall: float
     confusionMatrix: ConfusionMatrix
 
@@ -93,8 +93,11 @@ class EvaluationResult:
         self.confusionMatrix = ConfusionMatrix()
 
     def __str__(self):
-        res = "Result of the evalutation:\n\taccuracy:\t" + str(self.accuracy) + "\n\tprecision\t" + str(self.precision)
-        res += " (not implemented)\n\trecall:\t\t" + str(self.recall) + " (not implemented)\n\nConfusion Matrix:\n" + self.confusionMatrix.__str__()
+        res = "Result of the evalutation:\n\taccuracy:\t" + str(self.accuracy) + "\n"
+        res += "\nLabel\tprecision\trecall"
+        for i in range(0, len(self.confusionMatrix.labels)):
+            res += "\n" + str(self.confusionMatrix.labels[i]) + "\t" + str(round(self.precision[i], 3)) + "\t\t" + str(round(self.recall[i], 3))
+        res += "\n\nConfusion Matrix:\n" + self.confusionMatrix.__str__()
         return res
 
     def __add__(self, other):
