@@ -56,6 +56,17 @@ class MyNaiveBayes(AAlgorithm):
             res.append(self._classes[numpy.argmax(posteriors)])
         return res
 
+    def predict_proba(self, testSample):
+        res = []
+        for x in testSample:
+            posteriors = []
+            for i in range(0, self._classes.shape[0]):
+                classCondProb = numpy.prod(self._pdf(x, self._mean[i], self._var[i]))
+                posteriors.append(classCondProb * self._prior[i])
+            # normalize class probability
+            res.append([p / sum(posteriors) for p in posteriors])
+        return res
+
     def _pdf(self, x, mean, var):
         num = numpy.exp(-((x - mean) ** 2 / (2 * var) ** 2))
         den = numpy.sqrt(2 * numpy.pi * var)

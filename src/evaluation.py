@@ -130,17 +130,40 @@ def getMeanSquaredError():
 ## rocEvaluation
 # draw the roc curve
 # /!\ for the moment the roc curve consider a two class classification
-def rocEvaluation(prediction, reality):
-    thresolds = [i / 10 for i in range(0, 10)]
-    # for t in range(thresold):
-    #     pass
-    _rocGraph([])
+# https://towardsdatascience.com/roc-curve-and-auc-from-scratch-in-numpy-visualized-2612bb9459ab
+def rocEvaluation(prediction, reality, sizePartition = 100, classToDisplay=None):
+    if (len(numpy.unique(reality)) > 2):
+        raise RuntimeError("Error: Roc curve evaluation is not implemented for multiclasse yet.")
+    thresholds = [i / 100 for i in range(0, 100)]
+    rocPos = []
+
+    for threshold in thresholds:
+        rocPos.append(_getTprAndFpr(prediction, reality, threshold))
+    print(rocPos)
+    _rocGraph(numpy.array(rocPos))
+
+def _getTprAndFpr(prediction, reality, threshold):
+    tp = tn = fp = fn = 0
+    for pred, real in zip(prediction, reality):
+        if (pred.index(max(pred)) > threshold):
+            if (real == 1):
+                tp += 1
+            else:
+                tn += 1
+        else:
+            if (real == 1):
+                fn += 1
+            else:
+                fp += 1
+    return [tp / (tp + fn), fp / (fp + tn)]
 
 # def _getThreshold():
 
 
-def _rocGraph(data):
-    matplotlib.pyplot.plot(data)
+def _rocGraph(data, classToDisplay=None):
+    matplotlib.pyplot.scatter(data[:,0], data[:,1])
+    # matplotlib.pyplot.plot([0.2, 0.2, 0.3, 0.4])
+    # matplotlib.pyplot.plot([0.1, 0.2, 0.4, 0.6])
     matplotlib.pyplot.ylabel('True Positive')
     matplotlib.pyplot.xlabel('False Positive')
     matplotlib.pyplot.show()

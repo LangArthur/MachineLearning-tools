@@ -76,6 +76,51 @@ class ConfusionMatrix():
                     res.data[i][j] = self.data[i][j] + other.data[i][j] / 2
             return res
 
+    def tp(self, className=None):
+        if (len(self.data) < 2):
+            raise ValueError("Error: The confusion matrix was badly initialize")
+        # binary class
+        if (not(className)):
+            return self.data[0][0]
+        # multiclass gestion
+        else:
+            i = self.labels.index(className)
+            return self.data[i][i]
+
+    def tn(self, className=None):
+        if (len(self.data) < 2):
+            raise ValueError("Error: The confusion matrix was badly initialize")
+        # binary class
+        if (not(className)):
+            return self.data[1][1]
+        # multiclass gestion
+        else:
+            i = self.labels.index(className)
+            raise RuntimeError("Error: not implemented yet")
+            # return self.data[i][i]
+
+    def fp(self, className=None):
+        if (len(self.data) < 2):
+            raise ValueError("Error: The confusion matrix was badly initialize")
+        # binary class
+        if (not(className)):
+            return self.data[0][1]
+        # multiclass gestion
+        else:
+            i = self.labels.index(className)
+            raise RuntimeError("Error: not implemented yet")
+
+    def fn(self, className=None):
+        if (len(self.data) < 2):
+            raise ValueError("Error: The confusion matrix was badly initialize")
+        # binary class
+        if (not(className)):
+            return self.data[1][0]
+        # multiclass gestion
+        else:
+            i = self.labels.index(className)
+            raise RuntimeError("Error: not implemented yet")
+
 
 ## EvaluationResult
 # structure that contain all the result from an anlgorithm evaluation
@@ -102,6 +147,7 @@ class EvaluationResult:
 
     def __add__(self, other):
         self.accuracy = (self.accuracy + other.accuracy) / 2
+        ##TODO fix the precision and recall
         self.precision = (self.precision + other.precision) / 2
         self.recall = (self.recall + other.recall) / 2
         self.confusionMatrix = self.confusionMatrix.mean(other.confusionMatrix)
