@@ -11,10 +11,6 @@ import matplotlib.pyplot
 
 from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 
-# https://towardsdatascience.com/why-and-how-to-cross-validate-a-model-d6424b45261f
-# https://towardsdatascience.com/classification-metrics-confusion-matrix-explained-7c7abe4e9543
-# https://towardsdatascience.com/accuracy-precision-recall-or-f1-331fb37c5cb9
-
 ## crossValidation
 # apply a cross validation on a model
 # @param nbFolds nb of folds in the cross validation
@@ -124,46 +120,67 @@ def sumColumn(array, i):
         res += elem[i]
     return res
 
-def getMeanSquaredError():
-    pass
+## DrawRoc
+# draw the roc curve
+# @param probaPrediction probability of the prediction.
+# @param reality list of the real class
+# @param sizePartition size of the partition for the roc evaluation
+# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
+def drawRoc(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
+    fprList, tprList = rocEvaluation(probaPrediction, reality, sizePartition)
+    _rocGraph(fprList, tprList)
 
 ## rocEvaluation
 # draw the roc curve
 # /!\ for the moment the roc curve consider a two class classification
-# https://towardsdatascience.com/roc-curve-and-auc-from-scratch-in-numpy-visualized-2612bb9459ab
-def rocEvaluation(prediction, reality, sizePartition = 100, classToDisplay=None):
+# @param probaPrediction probability of the prediction.
+# @param reality list of the real class
+# @param sizePartition size of the partition for the roc evaluation
+def rocEvaluation(probaPrediction, reality, sizePartition = 100):
     if (len(numpy.unique(reality)) > 2):
         raise RuntimeError("Error: Roc curve evaluation is not implemented for multiclasse yet.")
-    thresholds = [i / 100 for i in range(0, 100)]
-    rocPos = []
+    thresholds = [i / sizePartition for i in range(0, sizePartition)]
+    tprList = []
+    fprList = []
 
     for threshold in thresholds:
-        rocPos.append(_getTprAndFpr(prediction, reality, threshold))
-    print(rocPos)
-    _rocGraph(numpy.array(rocPos))
+        tpr, fpr = _getTprAndFpr(probaPrediction, reality, threshold)
+        tprList.append(tpr)
+        fprList.append(fpr)
+    return fprList, tprList
 
-def _getTprAndFpr(prediction, reality, threshold):
+## _getTprAndFpr
+# @return the True positive rate and the False positive rate
+# @param probaPrediction probability of the prediction.
+# @param reality list of the real class
+# @param threshold threshold on which the 
+def _getTprAndFpr(probaPrediction, reality, threshold):
     tp = tn = fp = fn = 0
-    for pred, real in zip(prediction, reality):
-        if (pred.index(max(pred)) > threshold):
+    for pred, real in zip(probaPrediction, reality):
+        if (pred > threshold):
             if (real == 1):
                 tp += 1
             else:
-                tn += 1
-        else:
-            if (real == 1):
-                fn += 1
-            else:
                 fp += 1
-    return [tp / (tp + fn), fp / (fp + tn)]
+        else:
+            if (real == 0):
+                tn += 1
+            else:
+                fn += 1
+    fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
+    tpr = tp / (tp + fn) if (tp + fn) != 0 else 0
+    return tpr, fpr
 
-# def _getThreshold():
-
-
-def _rocGraph(data, classToDisplay=None):
-    matplotlib.pyplot.scatter(data[:,0], data[:,1])
-    # matplotlib.pyplot.plot([0.2, 0.2, 0.3, 0.4])
-    # matplotlib.pyplot.plot([0.1, 0.2, 0.4, 0.6])
+## _rocGraph
+# plot the graph for the roc curve
+# @param x the true postive rate points
+# @param y the false positive rate points
+# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
+def _rocGraph(x, y, classToDisplay=None):
+    matplotlib.pyplot.ylim(0, 1)
+    matplotlib.pyplot.xlim(0, 1)
+    matplotlib.pyplot.scatter(x, y)
+    matplotlib.pyplot.plot(x, y)
     matplotlib.pyplot.ylabel('True Positive')
     matplotlib.pyplot.xlabel('False Positive')
     matplotlib.pyplot.show()

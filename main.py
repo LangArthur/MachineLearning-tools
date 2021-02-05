@@ -42,7 +42,6 @@ def main():
     # clf = GaussianNB()
     # clf.fit(trainingData, trainingLabel)
     # prediction = clf.predict(testData)
-    # prediction = clf.predict_proba(testData)
     # prediction = clf.predict_proba(testData)[:, 1]
 
     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
@@ -51,7 +50,7 @@ def main():
     # predict = myNB.predict(testData)
     predict = myNB.predict_proba(testData)
 
-    rocEvaluation(predict, testLabel, 10)
+    drawRoc(numpy.array(predict)[:,1], testLabel, 10)
 
     # print(crossValidation(5, dataset, myneigh))
 

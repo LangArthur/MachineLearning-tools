@@ -45,8 +45,6 @@ print("predicted class: {}".format(neigh.predict(guess)))
 
 Implementation of the bayes algorithm following the Gaussian method.
 
-
-
 ## Authors
 
 * **Arthur LANG** - *Initial work* - [LangArthur](https://github.com/LangArthur)
