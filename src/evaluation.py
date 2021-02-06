@@ -165,8 +165,20 @@ def sumColumn(array, i):
         res += elem[i]
     return res
 
-## DrawRoc
+## rocEvaluation
 # draw the roc curve
+# /!\ for the moment the roc curve consider a two class classification
+# @param probaPrediction probability of the prediction.
+# @param reality list of the real class
+# @param sizePartition size of the partition for the roc evaluation
+# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
+def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
+    fprList, tprList = _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition)
+    auc = _computeAuc(fprList, tprList)
+    _rocGraph(fprList, tprList, round(auc, 2))
+
+## _getRocEvaluationCoordinate
+# return the coordinates for the Roc curve
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param sizePartition size of the partition for the roc evaluation
@@ -182,18 +194,6 @@ def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition = 100):
         tprList.append(tpr)
         fprList.append(fpr)
     return fprList, tprList
-
-## rocEvaluation
-# draw the roc curve
-# /!\ for the moment the roc curve consider a two class classification
-# @param probaPrediction probability of the prediction.
-# @param reality list of the real class
-# @param sizePartition size of the partition for the roc evaluation
-# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
-def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
-    fprList, tprList = _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition)
-    auc = _computeAuc(fprList, tprList)
-    _rocGraph(fprList, tprList, round(auc, 2))
 
 ## _getTprAndFpr
 # @return the True positive rate and the False positive rate
@@ -223,8 +223,6 @@ def _getTprAndFpr(probaPrediction, reality, threshold):
 # @param xList all the x of the points
 # @param yList all the y of the points
 def _computeAuc(xList, yList):
-    print(xList)
-    print(yList)
     res = 0
     prev_x = None
     prev_y = None
@@ -241,10 +239,14 @@ def _computeAuc(xList, yList):
 # @param y the false positive rate points
 # @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
 def _rocGraph(x, y, auc, classToDisplay=None):
-    matplotlib.pyplot.ylim(0, 1)
-    matplotlib.pyplot.xlim(0, 1)
+    # add the origin point to display the curve
+    x.append(0)
+    y.append(0)
+    matplotlib.pyplot.ylim(-0.05, 1.05)
+    matplotlib.pyplot.xlim(-0.05, 1.05)
     matplotlib.pyplot.scatter(x, y)
-    matplotlib.pyplot.plot(x, y, 'r-')
+    matplotlib.pyplot.plot(x, y)
+    matplotlib.pyplot.plot([0, 1], [0, 1], color='red')
     matplotlib.pyplot.ylabel('True Positive')
     matplotlib.pyplot.xlabel('False Positive')
     matplotlib.pyplot.text(0.9, 0.9, "AUC: " + str(auc), horizontalalignment='center', verticalalignment='center')
