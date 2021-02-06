@@ -18,6 +18,10 @@ from src.MyKNeirestNeighbor import MyKNeirestNeighbor
 from src.MyNaiveBayes import *
 from src.evaluation import *
 
+## compare
+# function for debuging purpose. It show two array and underline the different values in red
+# @param res1 first array
+# @param res2 second array
 def compare(res1, res2):
     print("Compare: ")
     for mk, sk in zip(res1, res2):
@@ -28,13 +32,10 @@ def compare(res1, res2):
 
 def main():
     dataset = datasets.load_iris()
-
-    # dataset = datasets.load_wine()
-
-    # data = dataset.data[:100]
-    # target = dataset.target[:100]
-    # trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
-    trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
+    data = dataset.data[:100]
+    target = dataset.target[:100]
+    trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
+    # trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
 
     # clf = GaussianNB()
     # clf.fit(trainingData, trainingLabel)
@@ -45,18 +46,12 @@ def main():
 
     myNB.fit(trainingData, trainingLabel)
     predict = myNB.predict(testData)
-    print(evaluate(predict, testLabel)) 
-    # predictProba = myNB.predict_proba(testData)
+    # print(evaluate(predict, testLabel)) 
+    predictProba = myNB.predict_proba(testData)
 
-    # rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10)
+    rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10)
 
-    print(crossValidation(5, dataset, myNB))
-
-    # myneigh.fit(trainingData, trainingLabel)
-    # predict = myneigh.predict(testData)
-    # print(myneigh.evaluate(predict, testLabel))
-
-    # compare(testLabel, predict)
+    # print(crossValidation(5, dataset, myNB))
     return 0
 
 if __name__ == "__main__":

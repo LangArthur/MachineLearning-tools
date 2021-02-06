@@ -192,7 +192,8 @@ def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition = 100):
 # @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
 def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
     fprList, tprList = _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition)
-    _rocGraph(fprList, tprList)
+    auc = _computeAuc(fprList, tprList)
+    _rocGraph(fprList, tprList, round(auc, 2))
 
 ## _getTprAndFpr
 # @return the True positive rate and the False positive rate
@@ -216,16 +217,35 @@ def _getTprAndFpr(probaPrediction, reality, threshold):
     tpr = tp / (tp + fn) if (tp + fn) != 0 else 0
     return tpr, fpr
 
+## _computeAuc
+# compute the area under the curve
+# I approximate the area between two values on the curve as a trapeze
+# @param xList all the x of the points
+# @param yList all the y of the points
+def _computeAuc(xList, yList):
+    print(xList)
+    print(yList)
+    res = 0
+    prev_x = None
+    prev_y = None
+    for x, y in zip(xList, yList):
+        if (prev_x != None):
+            res += abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2)
+        prev_x = x
+        prev_y = y
+    return res
+
 ## _rocGraph
 # plot the graph for the roc curve
 # @param x the true postive rate points
 # @param y the false positive rate points
 # @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
-def _rocGraph(x, y, classToDisplay=None):
+def _rocGraph(x, y, auc, classToDisplay=None):
     matplotlib.pyplot.ylim(0, 1)
     matplotlib.pyplot.xlim(0, 1)
     matplotlib.pyplot.scatter(x, y)
-    matplotlib.pyplot.plot(x, y)
+    matplotlib.pyplot.plot(x, y, 'r-')
     matplotlib.pyplot.ylabel('True Positive')
     matplotlib.pyplot.xlabel('False Positive')
+    matplotlib.pyplot.text(0.9, 0.9, "AUC: " + str(auc), horizontalalignment='center', verticalalignment='center')
     matplotlib.pyplot.show()
