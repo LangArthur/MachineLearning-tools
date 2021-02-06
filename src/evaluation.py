@@ -6,6 +6,7 @@
 # evaluation.py
 #
 
+import copy
 import numpy
 import matplotlib.pyplot
 
@@ -26,18 +27,54 @@ def crossValidation(nbFolds, dataset, algorithm):
     # split in folds
     data = numpy.array_split(dataset.data[indices], nbFolds)
     target = numpy.array_split(dataset.target[indices], nbFolds)
-    algorithm.fit(data[0], target[0])
+    # algorithm.fit(data[0], target[0])
     foldEvaluations = []
     # execute algorithm
     for i in range(nbFolds - 1):
-        predict = algorithm.predict(data[i + 1])
-        foldEvaluations.append(algorithm.evaluate(predict, target[i + 1]))
-    # merge all the result
+        algorithm.fit(data[i + 1], target[i + 1])
+        predict = algorithm.predict(data[0])
+        myeval = evaluate(predict, target[0])
+        foldEvaluations.append(myeval)
+    return _mergeCrossValidationRes(foldEvaluations, nbFolds)
+
+## _mergeCrossValidationRes
+# merge all the results from the cross-validation
+# @param resArray array with all the EvaluationResult
+# @param nb of folds give in the cross validation
+def _mergeCrossValidationRes(resArray, nbFolds): #TODO rework the merge method (too much loop, could be more optimal -> check numpy method)
     res = EvaluationResult()
-    res.confusionMatrix.reserve(foldEvaluations[0].confusionMatrix.labels)
-    for evaluation in foldEvaluations: 
-        res = res + evaluation 
-    return res 
+    res.confusionMatrix.reserve(resArray[0].confusionMatrix.labels)
+    matrixData = []
+    # sum all the values from different evaluations
+    for evalRes in resArray:
+        res.accuracy += evalRes.accuracy
+        for key, value in evalRes.precision.items():
+            if (key in res.precision):
+                res.precision[key] += value
+            else:
+                res.precision[key] = value
+        for key, value in evalRes.recall.items():
+            if (key in res.recall):
+                res.recall[key] += value
+            else:
+                res.recall[key] = value
+        if (matrixData == []):
+            matrixData = evalRes.confusionMatrix.data
+        else:
+            for i in range(len(matrixData)):
+                for j in range(len(matrixData[0])):
+                    matrixData[i][j] += evalRes.confusionMatrix.data[i][j]
+    # divide each elem by nb of folds
+    for i in range(len(matrixData)):
+        for j in range(len(matrixData[0])):
+            matrixData[i][j] /= nbFolds - 1
+    res.confusionMatrix.data = copy.copy(matrixData)
+    res.accuracy /= nbFolds - 1
+    for key, _ in res.precision.items():
+        res.precision[key] /= nbFolds - 1
+    for key, _ in res.recall.items():
+        res.recall[key] /= nbFolds - 1
+    return res
 
 ## Partitionning a dataset
 # @param data data to be split
@@ -98,7 +135,11 @@ def evaluateAccuracy(confMatrix, size):
 def evaluatePrecision(confMatrix):
     res = {}
     for i, label in enumerate(confMatrix.labels):
-        res[label] = confMatrix.data[i][i] / sum(confMatrix.data[i])
+        den = sum(confMatrix.data[i])
+        if (den != 0):
+            res[label] = confMatrix.data[i][i] / sum(confMatrix.data[i])
+        else:
+            res[label] = 0
     return res
 
 ## evaluateRecall
@@ -107,7 +148,11 @@ def evaluatePrecision(confMatrix):
 def evaluateRecall(confMatrix):
     res = {}
     for i, label in enumerate(confMatrix.labels):
-        res[label] = confMatrix.data[i][i] / sumColumn(confMatrix.data, i)
+        den = sumColumn(confMatrix.data, i)
+        if (den != 0):
+            res[label] = confMatrix.data[i][i] / den
+        else:
+            res[label] = 0
     return res
 
 ## sumColumn
@@ -125,18 +170,7 @@ def sumColumn(array, i):
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param sizePartition size of the partition for the roc evaluation
-# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
-def drawRoc(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
-    fprList, tprList = rocEvaluation(probaPrediction, reality, sizePartition)
-    _rocGraph(fprList, tprList)
-
-## rocEvaluation
-# draw the roc curve
-# /!\ for the moment the roc curve consider a two class classification
-# @param probaPrediction probability of the prediction.
-# @param reality list of the real class
-# @param sizePartition size of the partition for the roc evaluation
-def rocEvaluation(probaPrediction, reality, sizePartition = 100):
+def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition = 100):
     if (len(numpy.unique(reality)) > 2):
         raise RuntimeError("Error: Roc curve evaluation is not implemented for multiclasse yet.")
     thresholds = [i / sizePartition for i in range(0, sizePartition)]
@@ -149,11 +183,22 @@ def rocEvaluation(probaPrediction, reality, sizePartition = 100):
         fprList.append(fpr)
     return fprList, tprList
 
+## rocEvaluation
+# draw the roc curve
+# /!\ for the moment the roc curve consider a two class classification
+# @param probaPrediction probability of the prediction.
+# @param reality list of the real class
+# @param sizePartition size of the partition for the roc evaluation
+# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
+def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
+    fprList, tprList = _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition)
+    _rocGraph(fprList, tprList)
+
 ## _getTprAndFpr
 # @return the True positive rate and the False positive rate
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
-# @param threshold threshold on which the 
+# @param threshold threshold on which the roc is computed
 def _getTprAndFpr(probaPrediction, reality, threshold):
     tp = tn = fp = fn = 0
     for pred, real in zip(probaPrediction, reality):

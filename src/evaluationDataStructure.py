@@ -31,6 +31,9 @@ class ConfusionMatrix():
             res += '\n'
         return res
 
+    def setLabels(self, labels):
+        self.labels = labels
+
     ## reserve
     # init matrix with a specific size and specific label
     # @param self object pointer
@@ -128,13 +131,13 @@ class ConfusionMatrix():
 class EvaluationResult:
     accuracy: float
     precision: {str, float}
-    recall: float
+    recall: {str, float}
     confusionMatrix: ConfusionMatrix
 
     def __init__(self):
         self.accuracy = 0
-        self.precision = 0
-        self.recall = 0
+        self.precision = {}
+        self.recall = {}
         self.confusionMatrix = ConfusionMatrix()
 
     def __str__(self):
@@ -144,11 +147,3 @@ class EvaluationResult:
             res += "\n" + str(self.confusionMatrix.labels[i]) + "\t" + str(round(self.precision[i], 3)) + "\t\t" + str(round(self.recall[i], 3))
         res += "\n\nConfusion Matrix:\n" + self.confusionMatrix.__str__()
         return res
-
-    def __add__(self, other):
-        self.accuracy = (self.accuracy + other.accuracy) / 2
-        ##TODO fix the precision and recall
-        self.precision = (self.precision + other.precision) / 2
-        self.recall = (self.recall + other.recall) / 2
-        self.confusionMatrix = self.confusionMatrix.mean(other.confusionMatrix)
-        return self
