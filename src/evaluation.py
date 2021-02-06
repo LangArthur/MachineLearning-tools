@@ -97,7 +97,7 @@ def partitionningDataset(data, target, percent):
 # @param prediction data get from the prediction
 # @param reality real data values
 def evaluate(prediction, reality):
-    name = _getEvaluationName(prediction, reality) #TODO rework this part
+    name = _getEvaluationName(prediction, reality) #TODO rework this part -> can be done with numpy ?
     res = EvaluationResult()
     res.confusionMatrix.reserve(name)
     for predict, real in zip(prediction, reality):
