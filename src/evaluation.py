@@ -84,6 +84,10 @@ def _mergeCrossValidationRes(resArray, nbFolds): #TODO rework the merge method (
         res.recall[key] /= nbFolds - 1
     return res
 
+## _mergeCrossValidationProba
+# merge probas from a cross-validation
+# @param probaArray array with all the proba from the cross validation
+# @param nbFolds number of folds used in the cross-validation
 def _mergeCrossValidationProba(probaArray, nbFolds):
     for i in range(len(probaArray)):
         if i != 0:
@@ -94,6 +98,7 @@ def _mergeCrossValidationProba(probaArray, nbFolds):
         for j in range(len(probaArray[0][i])):
             probaArray[0][i][j] /= nbFolds
     return probaArray[0]
+
 ## Partitionning a dataset
 # @param data data to be split
 # @param target class of the associated data

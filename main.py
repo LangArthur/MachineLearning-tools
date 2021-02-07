@@ -37,11 +37,10 @@ def main():
     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
     myNB.fit(trainingData, trainingLabel)
 
-    print("Running the cross validation:\nNote: the cross validation handle the multiclass prediction")
+    print("Running the cross validation:\n")
     print(crossValidation(10, dataset, myNB))
 
-    print("For the examinator: Be carefull, the roc curve here is not the result of the previous cross validation.")
-    print("I computed the roc curve from another cross validation with only two classes (see source code in main.py)")
+    print("Running the cross validation with roc curve:\n")
     predictProba = myNB.predict_proba(testData)
     rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
 
