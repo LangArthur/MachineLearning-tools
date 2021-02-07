@@ -69,5 +69,7 @@ class MyNaiveBayes(AAlgorithm):
 
     def _pdf(self, x, mean, var):
         num = numpy.exp(-((x - mean) ** 2 / (2 * var) ** 2))
+        # numpy.ma.array(num, mask=(num == 0))
         den = numpy.sqrt(2 * numpy.pi * var)
+        # numpy.ma.array(den, mask=(den == 0))
         return num / den

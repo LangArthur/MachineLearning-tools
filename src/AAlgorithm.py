@@ -24,3 +24,7 @@ class AAlgorithm(ABC):
     @abstractmethod
     def predict(self, testSample):
         pass
+
+    @abstractmethod
+    def predict_proba(self, testSame):
+        pass

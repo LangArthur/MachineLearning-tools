@@ -6,15 +6,12 @@
 # main.py
 #
 
-import sys
-import random
-
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
+# from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+# from sklearn.neighbors import KNeighborsClassifier
+# from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets
 
-from src.MyKNeirestNeighbor import MyKNeirestNeighbor
+# from src.MyKNeirestNeighbor import MyKNeirestNeighbor
 from src.MyNaiveBayes import *
 from src.evaluation import *
 
@@ -40,13 +37,13 @@ def main():
     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
     myNB.fit(trainingData, trainingLabel)
 
-    predictProba = myNB.predict_proba(testData)
     print("Running the cross validation:\nNote: the cross validation handle the multiclass prediction")
-    print(crossValidation(5, dataset, myNB))
+    print(crossValidation(10, dataset, myNB))
 
-    print("For the examinator: Be carefull, the roc curve here is not the result of the cross validation. I computed the roc curve from a single prediction (see source code in main.py)")
-    # the roc evaluation is only on a single test here
-    rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10)
+    print("For the examinator: Be carefull, the roc curve here is not the result of the previous cross validation.")
+    print("I computed the roc curve from another cross validation with only two classes (see source code in main.py)")
+    predictProba = myNB.predict_proba(testData)
+    rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
 
     return 0
 

@@ -17,7 +17,7 @@ from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 # @param nbFolds nb of folds in the cross validation
 # @dataset a dataset formated as the sklearn data set # TODO change this for more modularty
 # @algorithm algorithm that must heritate from AAlgorithm (see AAlgorithm file)
-def crossValidation(nbFolds, dataset, algorithm):
+def crossValidation(nbFolds, dataset, algorithm, drawRoc=False):
     # check nbFolds
     if (nbFolds < 2):
         raise ValueError("Error: can't do a cross validation with less than 2 folds")
@@ -32,10 +32,18 @@ def crossValidation(nbFolds, dataset, algorithm):
     # execute algorithm
     for i in range(nbFolds - 1):
         algorithm.fit(data[i + 1], target[i + 1])
-        predict = algorithm.predict(data[0])
-        myeval = evaluate(predict, target[0])
-        foldEvaluations.append(myeval)
-    return _mergeCrossValidationRes(foldEvaluations, nbFolds)
+        if (drawRoc):
+            predict = algorithm.predict_proba(data[0])
+            foldEvaluations.append(predict)
+        else:
+            predict = algorithm.predict(data[0])
+            myeval = evaluate(predict, target[0])
+            foldEvaluations.append(myeval)
+    if (drawRoc):
+        merge = _mergeCrossValidationProba(foldEvaluations, nbFolds)
+        rocEvaluation(merge, target[0])
+    else:
+        return _mergeCrossValidationRes(foldEvaluations, nbFolds)
 
 ## _mergeCrossValidationRes
 # merge all the results from the cross-validation
@@ -76,6 +84,16 @@ def _mergeCrossValidationRes(resArray, nbFolds): #TODO rework the merge method (
         res.recall[key] /= nbFolds - 1
     return res
 
+def _mergeCrossValidationProba(probaArray, nbFolds):
+    for i in range(len(probaArray)):
+        if i != 0:
+            for j in range(len(probaArray[i])):
+                for k in range(len(probaArray[i][j])):
+                    probaArray[0][j][k] += probaArray[i][j][k]
+    for i in range(len(probaArray[0])):
+        for j in range(len(probaArray[0][i])):
+            probaArray[0][i][j] /= nbFolds
+    return probaArray[0]
 ## Partitionning a dataset
 # @param data data to be split
 # @param target class of the associated data

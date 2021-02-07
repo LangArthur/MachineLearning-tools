@@ -21,6 +21,7 @@ All the algorithm implementation follow the AAlgorithm model.
 This model has two main method:
 - fit: it prepare your classifier with a training dataset
 - predict: give predictions for the given values
+- predict_proba: give the probability of the prediction
 
 ### Knn Algorithm
 
