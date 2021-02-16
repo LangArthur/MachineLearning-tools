@@ -27,10 +27,16 @@ class DecisionTree(AAlgorithm):
         tmp = list(zip(column, targets))
         tmp.sort()
         column, targets = zip(*tmp)
+        prev = column[1]
         for i in range(len(column) - 1):
             j = i + 1
-            threshold = (column[i] + column[j]) / 2
-            # split array following the threshold
+            if (prev != column[j]):
+                threshold = (column[i] + column[j]) / 2
+                firstSplit = targets[:j]
+                print(self._giniRatio(firstSplit))
+                secondSplit = targets[j:]
+                print(self._giniRatio(secondSplit))
+                prev = column[j]
 
     def _rankData(self, targets):
         print("rank")
@@ -41,17 +47,6 @@ class DecisionTree(AAlgorithm):
         for label in labels:
             sum += (numpy.sum(targets == label) / len(targets)) ** 2
         return 1 - sum
-
-    # def _giniRatio(self, threshold, data, target):
-    #     labels = numpy.unique(target)
-    #     score = [0 for _ in range(len(labels) * 2)] # score for each feature.
-    #     for i, val in enumerate(data):
-    #         if (val < threshold):
-    #             score[labels.index(target[i])] += 1
-    #         else:
-    #             score[labels.index(target[i]) + len(labels)] += 1
-    #     print(score)
-    #     return 0
 
     def fit(self, data, targets):
         # get best feature
