@@ -11,6 +11,7 @@ import numpy
 import matplotlib.pyplot
 
 from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
+from src.Utilities import sumColumn
 
 ## crossValidation
 # apply a cross validation on a model
@@ -176,16 +177,6 @@ def evaluateRecall(confMatrix):
             res[label] = confMatrix.data[i][i] / den
         else:
             res[label] = 0
-    return res
-
-## sumColumn
-# sum a column in an array
-# @param array array with the column
-# @param i index of the column to sum
-def sumColumn(array, i):
-    res = 0
-    for elem in array:
-        res += elem[i]
     return res
 
 ## rocEvaluation

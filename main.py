@@ -11,9 +11,9 @@
 # from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets
 
-# from src.MyKNeirestNeighbor import MyKNeirestNeighbor
 from src.MyNaiveBayes import *
 from src.evaluation import *
+from src.DecisionTree import *
 
 ## compare
 # function for debuging purpose. It show two array and underline the different values in red
@@ -27,24 +27,32 @@ def compare(res1, res2):
         else:
             print(mk, sk)
 
+# def main():
+#     dataset = datasets.load_iris()
+#     data = dataset.data[:100]
+#     target = dataset.target[:100]
+#     # data set for 2 class only
+#     trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
+
+#     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
+#     myNB.fit(trainingData, trainingLabel)
+
+#     print("Running the cross validation:\n")
+#     print(crossValidation(10, dataset, myNB))
+
+#     print("Running the cross validation with roc curve:\n")
+#     predictProba = myNB.predict_proba(testData)
+#     rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
+
+#     return 0
+
 def main():
     dataset = datasets.load_iris()
-    data = dataset.data[:100]
-    target = dataset.target[:100]
-    # data set for 2 class only
-    trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
 
-    myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
-    myNB.fit(trainingData, trainingLabel)
-
-    print("Running the cross validation:\n")
-    print(crossValidation(10, dataset, myNB))
-
-    print("Running the cross validation with roc curve:\n")
-    predictProba = myNB.predict_proba(testData)
-    rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
-
+    dt = DecisionTree()
+    dt.fit(dataset.data, dataset.target)
     return 0
+
 
 if __name__ == "__main__":
     main()
