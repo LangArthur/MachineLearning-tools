@@ -51,6 +51,7 @@ def main():
 
     dt = DecisionTree()
     dt.fit(dataset.data, dataset.target)
+    print(dt)
     return 0
 
 
