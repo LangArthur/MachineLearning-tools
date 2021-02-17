@@ -68,7 +68,7 @@ class DecisionTree(AAlgorithm):
         tmp.sort()
         column, targets = zip(*tmp)
         prev = column[1]
-        ginies = []
+        # ginies = []
         res = None
         for i in range(len(column) - 1):
             j = i + 1
@@ -106,7 +106,7 @@ class DecisionTree(AAlgorithm):
             sum += (numpy.sum(targets == label) / len(targets)) ** 2
         return 1 - sum
 
-    def fit(self, data, targets, names=[]):
+    def fit(self, data, targets):
         attributes = numpy.unique(targets)
         self._buildTree(data, targets, attributes)
 
