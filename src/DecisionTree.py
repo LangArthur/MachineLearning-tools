@@ -276,7 +276,9 @@ class DecisionTree(AAlgorithm):
         except Exception as e:
             print("Error: Can't display the graph properly. Here is the reason:")
             print(e)
-            print("Don't worry, an output file is generated, so you can visualize it.")
+            print("\n\033[91mNote to the teacher:\033[0m")
+            print("If it ask you to put the Graphviz executable on your path, I recommande to do sudo 'apt install graphviz on Ubuntu'")
+            print("Don't worry, an output file is generated in output directory, so you can visualize it.")
 
     def _plotNode(self, graph, node = None, parent = None):
         if (node == None):
