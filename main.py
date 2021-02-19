@@ -49,9 +49,12 @@ def compare(res1, res2):
 def main():
     dataset = datasets.load_iris()
 
+    trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
     dt = DecisionTree()
-    dt.fit(dataset.data, dataset.target)
-    print(dt)
+    dt.fit(trainingData, trainingLabel)
+    pred = dt.predict(testData)
+    print(pred)
+    print(evaluate(pred, testLabel))
     return 0
 
 

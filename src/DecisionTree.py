@@ -34,9 +34,9 @@ class DescisionTreeNode:
     def __str__(self):
         res = "type of Node: " + str(self.type)
         res += "\nsplit attribute " + str(self.attribute) + " at the value " + str(self.value)
-        res += "\nIt has " + str(len(self.children)) + " children:"
+        res += "\nIt has " + str(len(self.children)) + " children:\n"
         for node in self.children:
-            res += node.__str__()
+            res += "- " + node.__str__()
         return res
 
 ## BestSplit
@@ -47,12 +47,6 @@ class BestSplit:
     attributeIdx: int # index of the attribute (in the targets array). Set to -1 by default
     attributeType: DescisionTreeNodeType # type of the split
     splitValue: int # value of the split
-
-    # def __init__(self, gini, attributeIdx, attributeType, splitValue):
-    #     self.giniRatio = gini
-    #     self.attributeIdx = attributeIdx
-    #     self.attributeType = attributeType
-    #     self.splitValue = splitValue
 
     ## update
     # update the content of a BestSplit dataclass
@@ -74,6 +68,9 @@ class DecisionTree(AAlgorithm):
     def __init__(self):
         super().__init__("Descicion tree")
         self.tree = None
+        self._predictionFct = {
+            DescisionTreeNodeType.NUMBER: self._predictNum
+        }
 
     def __str__(self):
         res = "Decsision Tree:\n\n"
@@ -82,16 +79,6 @@ class DecisionTree(AAlgorithm):
         else:
             res += self.tree.__str__()
         return res
-
-    ## _giniRation
-    # compute the gini ration
-    # @param targets the targets from wich you want the gini ratio
-    def _giniRatio(self, targets):
-        sum = 0
-        labels = numpy.unique(targets)
-        for label in labels:
-            sum += (numpy.sum(targets == label) / len(targets)) ** 2
-        return 1 - sum
 
     ## fit
     # call to train the tree
@@ -106,21 +93,14 @@ class DecisionTree(AAlgorithm):
     # @param targets targets associated with the data
     # @param parent give if you want to attache new created node to an existing one
     def _buildTree(self, data, targets, parent=None):
-        print(len(data))
-        input()
         best = self._getBestAttributeScore(data, targets)
-        print(best)
         # if we found a best, create the new tree node
         if (best != None):
-            newNode = self._createNode(best, parent)
+            newNode = self._createNode(best, targets[best.attributeIdx], parent)
             if (best.giniRatio != 1):
                 firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeIdx)
                 firstData, firstTargets = numpy.array([ a for a, _ in firstPartData ]), numpy.array([ b for _, b in firstPartData ])
                 secondData, secondTargets = numpy.array([ a for a, _ in secondPartData ]), numpy.array([ b for _, b in secondPartData ])
-                print("First")
-                print(firstData)
-                print("Second")
-                print(secondData)
                 # recursive calls for the two new splited data
                 self._buildTree(firstData, firstTargets, newNode)
                 self._buildTree(secondData, secondTargets, newNode)
@@ -135,21 +115,24 @@ class DecisionTree(AAlgorithm):
         # test all the attributes
         for i in range(len(attributes)):
             if (len(data) > i + 1):
-                score = self._score(data[:, i + 1], targets)
-                if (score != None and best == None):
-                    best = score
-                if (score != None and score.giniRatio < best.giniRatio): #TODO maybe change the method of finding the best split
-                    best = score
-                    best.attributeIdx = i
+                score = self._score(data[:, i], targets)
+                if (score != None):
+                    score.attributeIdx = i
+                    if (best == None):
+                        best = score
+                    elif (best.giniRatio > score.giniRatio): #TODO maybe change the method of finding the best split
+                        best = score
+                        best.attributeIdx = i
         return best
 
     ## _createNode
     # create a new node and add it in the tree
     # @param score score of the best evaluated split
+    # @param attribut of the new node
     # @param parent parent the node should be attach to. Note that is no parent is specified and a tree exist, the node will be skiped
     # @return the new created node
-    def _createNode(self, score, parent):
-        newNode = DescisionTreeNode(score.attributeType, score.attribute, score.attributeIdx, score.splitValue)
+    def _createNode(self, score, attribute, parent):
+        newNode = DescisionTreeNode(score.attributeType, attribute, score.attributeIdx, score.splitValue)
         # set the newNode
         if (self.tree == None):
             self.tree = newNode
@@ -208,7 +191,7 @@ class DecisionTree(AAlgorithm):
         for i in range(len(column) - 1):
             j = i + 1
             # skip in the case of the same attribute values
-            if (prev != column[j]):
+            if (prev != column[j] and j != len(column)):
                 firstSplit = targets[:j]
                 secondSplit = targets[j:]
                 # Compute the gini ratio
@@ -223,13 +206,43 @@ class DecisionTree(AAlgorithm):
                 prev = column[j]
         return res
 
+    ## _giniRation
+    # compute the gini ration
+    # @param targets the targets from wich you want the gini ratio
+    def _giniRatio(self, targets):
+        sum = 0
+        labels = numpy.unique(targets)
+        for label in labels:
+            sum += (numpy.sum(targets == label) / len(targets)) ** 2
+        return 1 - sum
+
     ## _rankBestSplit
     # return the best split in the case of ranking attribute (like a string for example)
     def _rankBestSplit(self, targets):
         raise RuntimeError("Error: Not implemented yet.")
 
     def predict(self, testSample):
-        raise RuntimeError("Error: Not implemented yet.")
+        res = []
+        for toTest in testSample:
+            res.append(self._moveDownTree(toTest))
+        return res
+
+    def _moveDownTree(self, value, node = None):
+        if (node == None):
+            node = self.tree
+        if (node.type in self._predictionFct):
+            return self._predictionFct[node.type](node, value)
+        else:
+            raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
+
+    def _predictNum(self, node, value):
+        if (len(node.children) == 0):
+            return node.attribute
+        else:
+            if (value, node.value):
+                return self._moveDownTree(value, node.children[0])
+            else:
+                return self._moveDownTree(value, node.children[1])
 
     def predict_proba(self, testSample):
         raise RuntimeError("Error: Not implemented yet.")
