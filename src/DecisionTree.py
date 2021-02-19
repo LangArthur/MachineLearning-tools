@@ -283,7 +283,11 @@ class DecisionTree(AAlgorithm):
     def _plotNode(self, graph, node = None, parent = None):
         if (node == None):
             node = self.tree
-        newNode = pydot.Node(node.id, shape="circle")
+        newNode = None
+        if (node.type != DescisionTreeNodeType.FINAL):
+            newNode = pydot.Node(node.id, shape="circle", label=(str(node.attribute) + " class split at " + str(node.value)))
+        else:
+            newNode = pydot.Node(node.id, shape="circle", label="End on the branch")
         graph.add_node(newNode)
         if (parent != None):
             graph.add_edge(pydot.Edge(parent.id, node.id + 1))
