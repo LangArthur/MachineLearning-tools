@@ -54,9 +54,10 @@ def main():
     trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
     dt = DecisionTree()
     dt.fit(trainingData, trainingLabel)
-    pred = dt.predict(testData)
-    print(pred)
-    print(evaluate(pred, testLabel))
+    dt.plotTree()
+    # pred = dt.predict(testData)
+    # print(pred)
+    # print(evaluate(pred, testLabel))
     return 0
 
 

@@ -5,8 +5,10 @@
 # DecisionTree.py
 #
 
+import pydot
 import numpy
 
+from graphviz import Source
 from enum import Enum
 from dataclasses import dataclass
 
@@ -25,19 +27,21 @@ class DescisionTreeNodeType(Enum):
 # node for the dcision Tree
 # note that for the moment, only the number are handle and by default, first split is under the value
 class DescisionTreeNode:
-    def __init__(self, nodeType, attribute, idx, value):
+    def __init__(self, nodeType, attribute, idx, value, nodeId):
         self.type = nodeType # type of the node
         self.attribute = attribute # attribute on wich the data is split
         self.attributeIdx = idx # index of the attribute in the data
         self.value = value # value of the split
+        self.id = nodeId # id of the node
         self.children = [] # childrens of the node
 
     def __str__(self):
-        res = "type of Node: " + str(self.type)
-        res += "\nsplit attribute " + str(self.attribute) + " at the value " + str(self.value)
-        res += "\nIt has " + str(len(self.children)) + " children:\n"
-        for node in self.children:
-            res += "- " + node.__str__()
+        res = "type of Node: " + str(self.type) + "\n"
+        if (self.type != DescisionTreeNodeType.FINAL):
+            res += "split attribute " + str(self.attribute) + " at the value " + str(self.value)
+            res += "\nIt has " + str(len(self.children)) + " children:\n"
+            for node in self.children:
+                res += "- " + node.__str__()
         return res
 
 ## BestSplit
@@ -69,6 +73,7 @@ class DecisionTree(AAlgorithm):
     def __init__(self):
         super().__init__("Descicion tree")
         self.tree = None
+        self.availableId = 0
         self._predictionFct = {
             DescisionTreeNodeType.NUMBER: self._predictNum,
             DescisionTreeNodeType.FINAL: lambda node, value : node.attribute
@@ -137,7 +142,8 @@ class DecisionTree(AAlgorithm):
         if (score.giniRatio == 0):
             score.attributeType = DescisionTreeNodeType.FINAL
             score.splitValue = None
-        newNode = DescisionTreeNode(score.attributeType, attribute, score.attributeIdx, score.splitValue)
+        newNode = DescisionTreeNode(score.attributeType, attribute, score.attributeIdx, score.splitValue, self.availableId)
+        self.availableId += 1
         # set the newNode
         if (self.tree == None):
             self.tree = newNode
@@ -207,9 +213,9 @@ class DecisionTree(AAlgorithm):
                 giniRatio = firstGini + secGini
                 # choose to keep or not the attribute
                 if (res == None):
-                    res = BestSplit(firstGini + secGini, -1, DescisionTreeNodeType(2), (column[i] + column[j]) / 2)
+                    res = BestSplit(firstGini + secGini, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2))
                 elif (res.giniRatio > giniRatio):
-                    res.update(firstGini + secGini, -1, DescisionTreeNodeType(2), (column[i] + column[j]) / 2)
+                    res.update(firstGini + secGini, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2))
                 prev = column[j]
         return res
 
@@ -257,5 +263,27 @@ class DecisionTree(AAlgorithm):
     def predict_proba(self, testSample):
         raise RuntimeError("Error: Not implemented yet.")
 
-    def plotTree(self, toPlot):
-        raise RuntimeError("Error: Not implemented yet.")
+    def plotTree(self, path = "output/output.dot"):
+        graph = pydot.Graph("Decision Tree", graph_type='graph', bgcolor='white')
+        self._plotNode(graph)
+        f = open(path, "w")
+        f.write(graph.to_string())
+        f.close()
+        try:
+            path = path
+            s = Source.from_file(path)
+            s.view()
+        except Exception as e:
+            print("Error: Can't display the graph properly. Here is the reason:")
+            print(e)
+            print("Don't worry, an output file is generated, so you can visualize it.")
+
+    def _plotNode(self, graph, node = None, parent = None):
+        if (node == None):
+            node = self.tree
+        newNode = pydot.Node(node.id, shape="circle")
+        graph.add_node(newNode)
+        if (parent != None):
+            graph.add_edge(pydot.Edge(parent.id, node.id + 1))
+        for child in node.children:
+            self._plotNode(graph, child, node)
