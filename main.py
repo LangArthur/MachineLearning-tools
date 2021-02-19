@@ -11,6 +11,8 @@
 # from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets
 
+import numpy as np
+
 from src.MyNaiveBayes import *
 from src.evaluation import *
 from src.DecisionTree import *

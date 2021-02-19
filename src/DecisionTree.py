@@ -16,6 +16,7 @@ from src.Utilities import is_float
 ## DescisionTreeNodeType
 # enum for all type of leaf in the decision tree
 class DescisionTreeNodeType(Enum):
+    FINAL = 0
     BOOLEAN = 1
     NUMBER = 2
     RANK = 3
@@ -69,7 +70,8 @@ class DecisionTree(AAlgorithm):
         super().__init__("Descicion tree")
         self.tree = None
         self._predictionFct = {
-            DescisionTreeNodeType.NUMBER: self._predictNum
+            DescisionTreeNodeType.NUMBER: self._predictNum,
+            DescisionTreeNodeType.FINAL: lambda node, value : node.attribute
         }
 
     def __str__(self):
@@ -97,10 +99,11 @@ class DecisionTree(AAlgorithm):
         # if we found a best, create the new tree node
         if (best != None):
             newNode = self._createNode(best, targets[best.attributeIdx], parent)
-            if (best.giniRatio != 1):
+            if (best.giniRatio != 0):
                 firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeIdx)
                 firstData, firstTargets = numpy.array([ a for a, _ in firstPartData ]), numpy.array([ b for _, b in firstPartData ])
                 secondData, secondTargets = numpy.array([ a for a, _ in secondPartData ]), numpy.array([ b for _, b in secondPartData ])
+                # print(len(firstData), len(secondData))
                 # recursive calls for the two new splited data
                 self._buildTree(firstData, firstTargets, newNode)
                 self._buildTree(secondData, secondTargets, newNode)
@@ -114,7 +117,7 @@ class DecisionTree(AAlgorithm):
         best = None
         # test all the attributes
         for i in range(len(attributes)):
-            if (len(data) > i + 1):
+            if (len(data) > i):
                 score = self._score(data[:, i], targets)
                 if (score != None):
                     score.attributeIdx = i
@@ -122,7 +125,6 @@ class DecisionTree(AAlgorithm):
                         best = score
                     elif (best.giniRatio > score.giniRatio): #TODO maybe change the method of finding the best split
                         best = score
-                        best.attributeIdx = i
         return best
 
     ## _createNode
@@ -132,6 +134,9 @@ class DecisionTree(AAlgorithm):
     # @param parent parent the node should be attach to. Note that is no parent is specified and a tree exist, the node will be skiped
     # @return the new created node
     def _createNode(self, score, attribute, parent):
+        if (score.giniRatio == 0):
+            score.attributeType = DescisionTreeNodeType.FINAL
+            score.splitValue = None
         newNode = DescisionTreeNode(score.attributeType, attribute, score.attributeIdx, score.splitValue)
         # set the newNode
         if (self.tree == None):
@@ -161,10 +166,10 @@ class DecisionTree(AAlgorithm):
     # @param targets targets associated with the colum
     # @return an instance of BestSplit dataclass containing the best split for the column attribute
     def _score(self, column, targets):
-        if (numpy.array_equal(column, column.astype(bool))):
-            self._boolData(targets)
-        elif (numpy.array_equal(column, column.astype(str))):
-            self._rankData(targets)
+        # if (numpy.array_equal(column, column.astype(bool))): #TODO fix this condition
+        #     self._boolBestSplit(targets)
+        if (numpy.array_equal(column, column.astype(str))):
+            self._rankBestSplit(targets)
         elif (map(is_float, column)):
             return self._numericBestSplit(column, targets)
         else:
@@ -186,6 +191,8 @@ class DecisionTree(AAlgorithm):
         tmp.sort()
         column, targets = zip(*tmp)
         # set to the second element to skip the two firsts values
+        if (len(column) == 1):
+            return BestSplit(0, -1, DescisionTreeNodeType.FINAL, -1)
         prev = column[1]
         res = None
         for i in range(len(column) - 1):
@@ -236,10 +243,13 @@ class DecisionTree(AAlgorithm):
             raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
 
     def _predictNum(self, node, value):
+        # print(len(node.children), node.type)
         if (len(node.children) == 0):
             return node.attribute
+        elif (len(node.children) == 1):
+            return self._moveDownTree(value, node.children[0])
         else:
-            if (value, node.value):
+            if (value[node.attributeIdx] < node.value):
                 return self._moveDownTree(value, node.children[0])
             else:
                 return self._moveDownTree(value, node.children[1])
