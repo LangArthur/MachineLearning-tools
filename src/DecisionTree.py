@@ -34,6 +34,7 @@ class DescisionTreeNode:
         self.value = value # value of the split
         self.id = nodeId # id of the node
         self.children = [] # childrens of the node
+        self.finalClass = -1
 
     def __str__(self):
         res = "type of Node: " + str(self.type) + "\n"
@@ -59,9 +60,9 @@ class BestSplit:
     # @param attribute new attribute
     # @param attributeType new type
     # @prama splitValue new split value
-    def update(self, giniRatio, attribute, attributeType, splitValue):
+    def update(self, giniRatio, attributeIdx, attributeType, splitValue):
         self.giniRatio = giniRatio
-        self.attribute = attribute
+        self.attributeIdx = attributeIdx
         self.attributeType = attributeType
         self.splitValue = splitValue
 
@@ -92,6 +93,7 @@ class DecisionTree(AAlgorithm):
     # @param data data to use in train
     # @param targets targets to use in train
     def fit(self, data, targets):
+        print(data)
         self._buildTree(data, targets)
 
     ## _buildTree
@@ -108,7 +110,6 @@ class DecisionTree(AAlgorithm):
                 firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeIdx)
                 firstData, firstTargets = numpy.array([ a for a, _ in firstPartData ]), numpy.array([ b for _, b in firstPartData ])
                 secondData, secondTargets = numpy.array([ a for a, _ in secondPartData ]), numpy.array([ b for _, b in secondPartData ])
-                # print(len(firstData), len(secondData))
                 # recursive calls for the two new splited data
                 self._buildTree(firstData, firstTargets, newNode)
                 self._buildTree(secondData, secondTargets, newNode)
@@ -118,17 +119,17 @@ class DecisionTree(AAlgorithm):
     # @param data data to be evaluate
     # @param targets targets associated with the data
     def _getBestAttributeScore(self, data, targets):
-        attributes = numpy.unique(targets)
+        nbAttributes = len(data[0])
         best = None
         # test all the attributes
-        for i in range(len(attributes)):
+        for i in range(nbAttributes):
             if (len(data) > i):
                 score = self._score(data[:, i], targets)
                 if (score != None):
                     score.attributeIdx = i
                     if (best == None):
                         best = score
-                    elif (best.giniRatio > score.giniRatio): #TODO maybe change the method of finding the best split
+                    elif (best.giniRatio > score.giniRatio): #TODO maybe change the method of finding the best split with same gini ratio
                         best = score
         return best
 
@@ -192,14 +193,14 @@ class DecisionTree(AAlgorithm):
     # @param targets targets from the training set
     # @return return a BestSplit strucutre. Not that attributeIdx is not set in this function
     def _numericBestSplit(self, column, targets):
+        # if the content is pure or you have only one element in the column, return a final node
+        if (len(column) == 1 or len(numpy.unique(targets)) == 1):
+            return BestSplit(0, -1, DescisionTreeNodeType.FINAL, -1)
         # sort the data
         tmp = list(zip(column, targets))
         tmp.sort()
         column, targets = zip(*tmp)
-        # set to the second element to skip the two firsts values
-        if (len(column) == 1):
-            return BestSplit(0, -1, DescisionTreeNodeType.FINAL, -1)
-        prev = column[1]
+        prev = column[0]
         res = None
         for i in range(len(column) - 1):
             j = i + 1
@@ -249,7 +250,6 @@ class DecisionTree(AAlgorithm):
             raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
 
     def _predictNum(self, node, value):
-        # print(len(node.children), node.type)
         if (len(node.children) == 0):
             return node.attribute
         elif (len(node.children) == 1):
@@ -263,9 +263,9 @@ class DecisionTree(AAlgorithm):
     def predict_proba(self, testSample):
         raise RuntimeError("Error: Not implemented yet.")
 
-    def plotTree(self, path = "output/output.dot"):
+    def plotTree(self, path = "output/output.dot", legend = []):
         graph = pydot.Graph("Decision Tree", graph_type='graph', bgcolor='white')
-        self._plotNode(graph)
+        self._plotNode(graph, legend=legend)
         f = open(path, "w")
         f.write(graph.to_string())
         f.close()
@@ -280,16 +280,18 @@ class DecisionTree(AAlgorithm):
             print("If it ask you to put the Graphviz executable on your path, I recommande to do sudo 'apt install graphviz on Ubuntu'")
             print("Don't worry, an output file is generated in output directory, so you can visualize it.")
 
-    def _plotNode(self, graph, node = None, parent = None):
+    def _plotNode(self, graph, node = None, parent = None, legend = []):
         if (node == None):
             node = self.tree
         newNode = None
         if (node.type != DescisionTreeNodeType.FINAL):
-            # newNode = pydot.Node(node.id, shape="circle", label=("class: " + str(node.attribute) + " split at " + str(node.value)))
-            newNode = pydot.Node(node.id, shape="circle")
+            if (legend != []):
+                newNode = pydot.Node(node.id, shape="circle", label=("class: " + legend[node.attributeIdx] + " split at " + str(node.value)))
+            else:
+                newNode = pydot.Node(node.id, shape="circle", label=("class: " + str(node.attributeIdx) + " split at " + str(node.value)))
         else:
-            newNode = pydot.Node(node.id, shape="circle")
-            # newNode = pydot.Node(node.id, shape="circle", label="End on the branch")
+            newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.attribute))
+            # newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.attribute))
         graph.add_node(newNode)
         if (parent != None):
             graph.add_edge(pydot.Edge(parent.id, node.id))
