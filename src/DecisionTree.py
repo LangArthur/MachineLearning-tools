@@ -102,6 +102,9 @@ class DecisionTree(AAlgorithm):
     # @param targets targets associated with the data
     # @param parent give if you want to attache new created node to an existing one
     def _buildTree(self, data, targets, parent=None):
+        if (parent != None):
+            print("parent id: " + str(parent.id))
+            print("data size: " + str(len(data)))
         best = self._getBestAttributeScore(data, targets)
         # if we found a best, create the new tree node
         if (best != None):
@@ -249,17 +252,12 @@ class DecisionTree(AAlgorithm):
             raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
 
     def _predictNum(self, node, value):
-        if (node.type == DescisionTreeNodeType.FINAL):
-            return node.finalClass
-        # if (len(node.children) == 0):
-        #     return node.value
-        # elif (len(node.children) == 1):
-        #     return self._moveDownTree(value, node.children[0])
+        if (len(node.children) < 2):
+            raise RuntimeError("Error: An error occured in the tree creation. One of his node do not have enough children.")
+        if (value[node.attributeIdx] < node.value):
+            return self._moveDownTree(value, node.children[0])
         else:
-            if (value[node.attributeIdx] < node.value):
-                return self._moveDownTree(value, node.children[0])
-            else:
-                return self._moveDownTree(value, node.children[1])
+            return self._moveDownTree(value, node.children[1])
 
     def predict_proba(self, testSample):
         raise RuntimeError("Error: Not implemented yet.")
@@ -292,7 +290,6 @@ class DecisionTree(AAlgorithm):
                 newNode = pydot.Node(node.id, shape="circle", label=("class: " + str(node.attributeIdx) + " split at " + str(node.value)))
         else:
             newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.value))
-            # newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.attribute))
         graph.add_node(newNode)
         if (parent != None):
             graph.add_edge(pydot.Edge(parent.id, node.id))

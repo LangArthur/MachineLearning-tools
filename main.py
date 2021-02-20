@@ -11,7 +11,7 @@
 # from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets
 
-import numpy as np
+import sys
 
 from src.MyNaiveBayes import *
 from src.evaluation import *
@@ -48,16 +48,35 @@ def compare(res1, res2):
 
 #     return 0
 
+def printHelp():
+    print("USAGE:\t./main.py dataset")
+    print("build a decision tree with a dataset.\n")
+    print("DATASET:")
+    print(" --iris:\tiris dataset")
+    print(" --wine:\twine dataset")
+    print(" --cancer:\tbreast cancer dataset")
+
 def main():
-    dataset = datasets.load_iris()
+    av = sys.argv
+    if (len(av) != 2):
+        printHelp()
+        exit(1)
+    datasetLoader = {
+        "--iris": datasets.load_iris,
+        "--wine": datasets.load_wine,
+        "--cancer": datasets.load_breast_cancer,
+    }
+    dataset = datasetLoader[av[1]]()
 
     trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
+
     dt = DecisionTree()
+    # dt.fit(dataset.data, dataset.target)
     dt.fit(trainingData, trainingLabel)
     dt.plotTree()
-    # pred = dt.predict(testData)
-    # print(pred)
-    # print(evaluate(pred, testLabel))
+    pred = dt.predict(testData)
+    print(pred)
+    print(evaluate(pred, testLabel))
     return 0
 
 
