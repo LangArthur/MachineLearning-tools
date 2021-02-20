@@ -31,10 +31,10 @@ class DescisionTreeNode:
         self.type = nodeType # type of the node
         self.attribute = attribute # attribute on wich the data is split
         self.attributeIdx = idx # index of the attribute in the data
+        self.finalClass = -1 # final class. It used only with FINAL node
         self.value = value # value of the split
         self.id = nodeId # id of the node
         self.children = [] # childrens of the node
-        self.finalClass = -1
 
     def __str__(self):
         res = "type of Node: " + str(self.type) + "\n"
@@ -53,6 +53,7 @@ class BestSplit:
     attributeIdx: int # index of the attribute (in the targets array). Set to -1 by default
     attributeType: DescisionTreeNodeType # type of the split
     splitValue: int # value of the split
+    finalClass: int # use for remember the class of the split when it's pure.
 
     ## update
     # update the content of a BestSplit dataclass
@@ -77,7 +78,7 @@ class DecisionTree(AAlgorithm):
         self.availableId = 0
         self._predictionFct = {
             DescisionTreeNodeType.NUMBER: self._predictNum,
-            DescisionTreeNodeType.FINAL: lambda node, value : node.attribute
+            DescisionTreeNodeType.FINAL: lambda node, value : node.value
         }
 
     def __str__(self):
@@ -93,7 +94,6 @@ class DecisionTree(AAlgorithm):
     # @param data data to use in train
     # @param targets targets to use in train
     def fit(self, data, targets):
-        print(data)
         self._buildTree(data, targets)
 
     ## _buildTree
@@ -105,8 +105,8 @@ class DecisionTree(AAlgorithm):
         best = self._getBestAttributeScore(data, targets)
         # if we found a best, create the new tree node
         if (best != None):
-            newNode = self._createNode(best, targets[best.attributeIdx], parent)
-            if (best.giniRatio != 0):
+            newNode = self._createNode(best, data[0][best.attributeIdx], parent)
+            if (newNode.type != DescisionTreeNodeType.FINAL):
                 firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeIdx)
                 firstData, firstTargets = numpy.array([ a for a, _ in firstPartData ]), numpy.array([ b for _, b in firstPartData ])
                 secondData, secondTargets = numpy.array([ a for a, _ in secondPartData ]), numpy.array([ b for _, b in secondPartData ])
@@ -140,10 +140,9 @@ class DecisionTree(AAlgorithm):
     # @param parent parent the node should be attach to. Note that is no parent is specified and a tree exist, the node will be skiped
     # @return the new created node
     def _createNode(self, score, attribute, parent):
-        if (score.giniRatio == 0):
-            score.attributeType = DescisionTreeNodeType.FINAL
-            score.splitValue = None
         newNode = DescisionTreeNode(score.attributeType, attribute, score.attributeIdx, score.splitValue, self.availableId)
+        if (newNode.type == DescisionTreeNodeType.FINAL):
+            newNode.value = score.finalClass
         self.availableId += 1
         # set the newNode
         if (self.tree == None):
@@ -195,7 +194,7 @@ class DecisionTree(AAlgorithm):
     def _numericBestSplit(self, column, targets):
         # if the content is pure or you have only one element in the column, return a final node
         if (len(column) == 1 or len(numpy.unique(targets)) == 1):
-            return BestSplit(0, -1, DescisionTreeNodeType.FINAL, -1)
+            return BestSplit(0, -1, DescisionTreeNodeType.FINAL, -1, targets[0])
         # sort the data
         tmp = list(zip(column, targets))
         tmp.sort()
@@ -214,9 +213,9 @@ class DecisionTree(AAlgorithm):
                 giniRatio = firstGini + secGini
                 # choose to keep or not the attribute
                 if (res == None):
-                    res = BestSplit(firstGini + secGini, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2))
+                    res = BestSplit(giniRatio, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2), -1)
                 elif (res.giniRatio > giniRatio):
-                    res.update(firstGini + secGini, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2))
+                    res.update(giniRatio, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2))
                 prev = column[j]
         return res
 
@@ -250,10 +249,12 @@ class DecisionTree(AAlgorithm):
             raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
 
     def _predictNum(self, node, value):
-        if (len(node.children) == 0):
-            return node.attribute
-        elif (len(node.children) == 1):
-            return self._moveDownTree(value, node.children[0])
+        if (node.type == DescisionTreeNodeType.FINAL):
+            return node.finalClass
+        # if (len(node.children) == 0):
+        #     return node.value
+        # elif (len(node.children) == 1):
+        #     return self._moveDownTree(value, node.children[0])
         else:
             if (value[node.attributeIdx] < node.value):
                 return self._moveDownTree(value, node.children[0])
@@ -290,7 +291,7 @@ class DecisionTree(AAlgorithm):
             else:
                 newNode = pydot.Node(node.id, shape="circle", label=("class: " + str(node.attributeIdx) + " split at " + str(node.value)))
         else:
-            newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.attribute))
+            newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.value))
             # newNode = pydot.Node(node.id, shape="circle", label="class: " + str(node.attribute))
         graph.add_node(newNode)
         if (parent != None):
