@@ -285,11 +285,13 @@ class DecisionTree(AAlgorithm):
             node = self.tree
         newNode = None
         if (node.type != DescisionTreeNodeType.FINAL):
-            newNode = pydot.Node(node.id, shape="circle", label=(str(node.attribute) + " class split at " + str(node.value)))
+            # newNode = pydot.Node(node.id, shape="circle", label=("class: " + str(node.attribute) + " split at " + str(node.value)))
+            newNode = pydot.Node(node.id, shape="circle")
         else:
-            newNode = pydot.Node(node.id, shape="circle", label="End on the branch")
+            newNode = pydot.Node(node.id, shape="circle")
+            # newNode = pydot.Node(node.id, shape="circle", label="End on the branch")
         graph.add_node(newNode)
         if (parent != None):
-            graph.add_edge(pydot.Edge(parent.id, node.id + 1))
+            graph.add_edge(pydot.Edge(parent.id, node.id))
         for child in node.children:
             self._plotNode(graph, child, node)
