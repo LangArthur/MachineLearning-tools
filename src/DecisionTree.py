@@ -77,6 +77,7 @@ class DecisionTree(AAlgorithm):
         self.tree = None
         self.availableId = 0
         self._predictionFct = {
+            DescisionTreeNodeType.RANK: self._predictRank,
             DescisionTreeNodeType.NUMBER: self._predictNum,
             DescisionTreeNodeType.FINAL: lambda node, value : node.value
         }
@@ -102,16 +103,13 @@ class DecisionTree(AAlgorithm):
     # @param targets targets associated with the data
     # @param parent give if you want to attache new created node to an existing one
     def _buildTree(self, data, targets, parent=None):
-        # if (parent != None):
-        #     print("parent id: " + str(parent.id))
-        #     print("data size: " + str(len(data)))
         best = self._getBestAttributeScore(data, targets)
         # if we found a best, create the new tree node
         if (best != None):
             # add the node to the tree
             newNode = self._createNode(best, data[0][best.attributeIdx], parent)
             if (newNode.type != DescisionTreeNodeType.FINAL):
-                firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeIdx)
+                firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeType, best.attributeIdx)
                 firstData, firstTargets = numpy.array([ a for a, _ in firstPartData ]), numpy.array([ b for _, b in firstPartData ])
                 secondData, secondTargets = numpy.array([ a for a, _ in secondPartData ]), numpy.array([ b for _, b in secondPartData ])
                 # recursive calls for the two new splited data
@@ -160,14 +158,20 @@ class DecisionTree(AAlgorithm):
     # @param zipDataSet data ziped with their respective targets
     # @param value value on wich the split should be done
     # @param attributIdx index ot the attribut in the dataset
-    def _splitData(self, zipDataSet, value, attributIdx):
+    def _splitData(self, zipDataSet, value, atType, attributIdx):
         fst = []
         sec = []
         for elem in zipDataSet:
-            if (elem[0][attributIdx] < value):
-                fst.append(elem)
-            else:
-                sec.append(elem)
+            if (atType == DescisionTreeNodeType.RANK):
+                if (elem[0][attributIdx] == value):
+                    fst.append(elem)
+                else:
+                    sec.append(elem)
+            elif(atType == DescisionTreeNodeType.NUMBER):
+                if (elem[0][attributIdx] < value):
+                    fst.append(elem)
+                else:
+                    sec.append(elem)
         return fst, sec
 
     ## _score
@@ -179,7 +183,7 @@ class DecisionTree(AAlgorithm):
         # if (numpy.array_equal(column, column.astype(bool))): #TODO fix this condition
         #     self._boolBestSplit(targets)
         if (numpy.array_equal(column, column.astype(str))):
-            self._rankBestSplit(targets)
+            return self._rankBestSplit(column, targets)
         elif (map(is_float, column)):
             return self._numericBestSplit(column, targets)
         else:
@@ -236,8 +240,23 @@ class DecisionTree(AAlgorithm):
 
     ## _rankBestSplit
     # return the best split in the case of ranking attribute (like a string for example)
-    def _rankBestSplit(self, targets):
-        raise RuntimeError("Error: Not implemented yet.")
+    def _rankBestSplit(self, column, targets):
+        if (len(column) == 1 or len(numpy.unique(targets)) == 1):
+            return BestSplit(0, -1, DescisionTreeNodeType.FINAL, -1, targets[0])
+        ranks = numpy.unique(column)
+        datas = list(zip(column, targets))
+        res = None
+        for rank in ranks:
+            firstSplit = [targets[i] for i in range(len(column)) if column[i] == rank]
+            secondSplit = [targets[i] for i in range(len(column)) if column[i] != rank]
+            firstGini = self._giniRatio(firstSplit) * (len(firstSplit) / len(column))
+            secGini = self._giniRatio(secondSplit) * (len(secondSplit) / len(column))
+            giniRatio = firstGini + secGini
+            if (res == None):
+                res = BestSplit(giniRatio, -1, DescisionTreeNodeType.RANK, rank, -1)
+            elif (res.giniRatio > giniRatio):
+                res.update(giniRatio, -1, DescisionTreeNodeType.RANK, rank)            
+        return res
 
     ## predict
     # predict the class label for the elements
@@ -271,6 +290,14 @@ class DecisionTree(AAlgorithm):
         if (len(node.children) < 2):
             raise RuntimeError("Error: An error occured in the tree creation. One of his node do not have enough children.")
         if (value[node.attributeIdx] < node.value):
+            return self._moveDownTree(value, node.children[0])
+        else:
+            return self._moveDownTree(value, node.children[1])
+
+    def _predictRank(self, node, value):
+        if (len(node.children) < 2):
+            raise RuntimeError("Error: An error occured in the tree creation. One of his node do not have enough children.")
+        if (value[node.attributeIdx] == node.value):
             return self._moveDownTree(value, node.children[0])
         else:
             return self._moveDownTree(value, node.children[1])
