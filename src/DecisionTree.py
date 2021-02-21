@@ -262,7 +262,6 @@ class DecisionTree(AAlgorithm):
             return self._predictionFct[node.type](node, value)
         else:
             raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
-            path = path
 
     ## _predictNum
     # predict the class for a number attribute
@@ -275,6 +274,13 @@ class DecisionTree(AAlgorithm):
             return self._moveDownTree(value, node.children[0])
         else:
             return self._moveDownTree(value, node.children[1])
+
+    ## predict_proba
+    # get the proba of the prediction (despite the class)
+    # @param testSample elements to predict in an array
+    # @return a list with all the probabilities predictions in an array
+    def predict_proba(self, testSample):
+        raise RuntimeError("Error: Not implemented yet.")
 
     ## plotTree
     # plot the tree
