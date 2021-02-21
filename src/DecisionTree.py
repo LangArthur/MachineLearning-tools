@@ -102,12 +102,13 @@ class DecisionTree(AAlgorithm):
     # @param targets targets associated with the data
     # @param parent give if you want to attache new created node to an existing one
     def _buildTree(self, data, targets, parent=None):
-        if (parent != None):
-            print("parent id: " + str(parent.id))
-            print("data size: " + str(len(data)))
+        # if (parent != None):
+        #     print("parent id: " + str(parent.id))
+        #     print("data size: " + str(len(data)))
         best = self._getBestAttributeScore(data, targets)
         # if we found a best, create the new tree node
         if (best != None):
+            # add the node to the tree
             newNode = self._createNode(best, data[0][best.attributeIdx], parent)
             if (newNode.type != DescisionTreeNodeType.FINAL):
                 firstPartData, secondPartData = self._splitData(list(zip(data, targets)), best.splitValue, best.attributeIdx)
@@ -215,10 +216,11 @@ class DecisionTree(AAlgorithm):
                 secGini = self._giniRatio(secondSplit) * (len(secondSplit) / len(column))
                 giniRatio = firstGini + secGini
                 # choose to keep or not the attribute
+                splitValue = round((column[i] + column[j]) / 2, 5) # TODO risk of infinit loop if round is equal to 0
                 if (res == None):
-                    res = BestSplit(giniRatio, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2), -1)
+                    res = BestSplit(giniRatio, j, DescisionTreeNodeType(2), splitValue, -1)
                 elif (res.giniRatio > giniRatio):
-                    res.update(giniRatio, -1, DescisionTreeNodeType(2), round((column[i] + column[j]) / 2, 2))
+                    res.update(giniRatio, j, DescisionTreeNodeType(2), splitValue)
                 prev = column[j]
         return res
 
@@ -237,12 +239,22 @@ class DecisionTree(AAlgorithm):
     def _rankBestSplit(self, targets):
         raise RuntimeError("Error: Not implemented yet.")
 
+    ## predict
+    # predict the class label for the elements
+    # @param self object pointer
+    # @param testSample elements to predict in an array
+    # @return prediction, a list with an element for each value to be predicted
     def predict(self, testSample):
         res = []
         for toTest in testSample:
             res.append(self._moveDownTree(toTest))
         return res
 
+    ## _moveDownTree
+    # go through the tree
+    # @param value element used through the tree
+    # @param node actual node
+    # @return the class of value
     def _moveDownTree(self, value, node = None):
         if (node == None):
             node = self.tree
@@ -250,7 +262,12 @@ class DecisionTree(AAlgorithm):
             return self._predictionFct[node.type](node, value)
         else:
             raise RuntimeError("Error: prediction for " + str(node.type) + " is not implemented yet.")
+            path = path
 
+    ## _predictNum
+    # predict the class for a number attribute
+    # @param node current node
+    # @param value element to compare
     def _predictNum(self, node, value):
         if (len(node.children) < 2):
             raise RuntimeError("Error: An error occured in the tree creation. One of his node do not have enough children.")
@@ -259,9 +276,10 @@ class DecisionTree(AAlgorithm):
         else:
             return self._moveDownTree(value, node.children[1])
 
-    def predict_proba(self, testSample):
-        raise RuntimeError("Error: Not implemented yet.")
-
+    ## plotTree
+    # plot the tree
+    # @param path path to the output dot file
+    # @param legend give a legend to the attributs
     def plotTree(self, path = "output/output.dot", legend = []):
         graph = pydot.Graph("Decision Tree", graph_type='graph', bgcolor='white')
         self._plotNode(graph, legend=legend)
@@ -269,7 +287,6 @@ class DecisionTree(AAlgorithm):
         f.write(graph.to_string())
         f.close()
         try:
-            path = path
             s = Source.from_file(path)
             s.view()
         except Exception as e:
@@ -279,6 +296,12 @@ class DecisionTree(AAlgorithm):
             print("If it ask you to put the Graphviz executable on your path, I recommande to do sudo 'apt install graphviz on Ubuntu'")
             print("Don't worry, an output file is generated in output directory, so you can visualize it.")
 
+    ## _plotNode
+    # add node to the ploted tree
+    # @param graph graph of the tree
+    # @param node node to plote
+    # @param parent parent of the node
+    # @param legend give a legod to the attributes
     def _plotNode(self, graph, node = None, parent = None, legend = []):
         if (node == None):
             node = self.tree
