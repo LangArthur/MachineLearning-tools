@@ -48,6 +48,11 @@ Implementation of the bayes algorithm following the Gaussian method. I choose th
 
 Note that this algorithm handle multi-class problem.
 
+### Decision Tree Classifier
+
+Implementation of a tree classifier. It evaluate the impurity by using the Gini ratio. For the moment, the algorithm only handle numerical data.
+The decision tree classifier implement the methods from AAlgorithm. Note that it has another function to display the tree.
+
 ### Evaluation
 
 First, here is a structure containing the result of an evaluation
