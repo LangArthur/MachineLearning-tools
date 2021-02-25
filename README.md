@@ -53,6 +53,10 @@ Note that this algorithm handle multi-class problem.
 Implementation of a tree classifier. It evaluate the impurity by using the Gini ratio. For the moment, the algorithm only handle numerical data.
 The decision tree classifier implement the methods from AAlgorithm. Note that it has another function to display the tree.
 
+### Multy-layer Neural Network
+
+Implmentation of a neural network classifier. It uses backpropagation for adjusting the weights.
+
 ### Evaluation
 
 First, here is a structure containing the result of an evaluation
