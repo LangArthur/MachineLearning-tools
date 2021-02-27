@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Created on Tue Jan 19 2021
 #
@@ -10,13 +10,17 @@
 # from sklearn.neighbors import KNeighborsClassifier
 # from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets
+from sklearn.neural_network import MLPClassifier
 
 import sys
 
 from src.MyNaiveBayes import *
 from src.evaluation import *
 from src.DecisionTree import *
-from src.MyNeuralNetwork import *
+from src.MyNeuralNetwork.MyNeuralNetwork import *
+
+
+from src.Scaler import Scaler # TODO remove that
 
 ## compare
 # function for debuging purpose. It show two array and underline the different values in red
@@ -90,7 +94,19 @@ def printHelp():
 
 ## Assignment 3
 def main():
+
+    dataset = datasets.load_iris()
+    trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
+
+    # clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), random_state=1)
+    # clf.fit(trainingData, trainingLabel)
+    # pred = clf.predict(testData)
+    # print(evaluate(pred, testLabel))
     nn = MyNeuralNetwork()
+    nn.addLayer(6, 'sigmoid')
+    nn.addLayer(10, 'sigmoid')
+    nn.addLayer(10, 'sigmoid')
+    nn.fit(trainingData, trainingLabel)
     return 0
 
 if __name__ == "__main__":

@@ -10,9 +10,8 @@ import numpy
 
 class Node():
 
-    def __init__(self, activationFctName, weight):
-        self._weight = weight
-        self.output = 0
+    def __init__(self, activationFctName):
+        # self.output = 0
         self.delta = 0 # reprensent backward propagation error
         self._bias = numpy.random.rand(1) #TODO maybe change this to just a random number
         self._activationFctList = {
@@ -24,7 +23,7 @@ class Node():
             raise RuntimeError("Error: the activation function \'" + activationFctName + "\' is not implemented or do not exist.")
 
     def _sigmoid(self, x):
-        return 1 / 1 + math.exp(x)
+        return 1 / (1 + math.exp(x))
 
     def _sigmoidDerivative(self, x):
         return self._sigmoid(x) * (1 - self._sigmoid(x))
@@ -33,7 +32,7 @@ class Node():
     # def activate(self, x):
     #     raise RuntimeError("Error: no activation specified.")
 
-    def run(self, input):
-        inputValue = [layer.output for layer in input]
-        dot = numpy.sum(inputValue * self._weight) + self._bias
-        self.output = self._sigmoid(dot)
+    def run(self, inputValues, weights):
+        # inputValue = [layer.output for layer in input]
+        dot = numpy.sum(inputValues * weights) + self._bias
+        return self._sigmoid(dot)

@@ -13,7 +13,7 @@ class Scaler():
     def _normalize(self, array):
         maxVal = numpy.max(array)
         minVal = numpy.min(array)
-        return (array - maxVal) / (maxVal - minVal)
+        return (array - minVal) / (maxVal - minVal)
 
-    def normalize(self, array, axe):
+    def normalize(self, array, axe = 0):
         return numpy.apply_along_axis(self._normalize, axe, array)

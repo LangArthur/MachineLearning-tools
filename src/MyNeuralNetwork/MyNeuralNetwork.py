@@ -13,11 +13,13 @@ from enum import Enum
 
 from src.AAlgorithm import AAlgorithm
 from src.MyNeuralNetwork.Layer import Layer
+from src.Scaler import Scaler
 
 class MyNeuralNetwork(AAlgorithm):
 
     def __init__(self, weightPath="", learningRate = 1):
         super().__init__("Neural-Network")
+        self._scaler = Scaler()
         self._learningRate = learningRate
         self._layers = []
         if (weightPath == ""): # TODO check initialization with weights
@@ -47,17 +49,28 @@ class MyNeuralNetwork(AAlgorithm):
         # compute mean square error
         return 1 / len(pred) * (numpy.square(pred - reality)).sum()
 
-    def _nbOfNodePerLayer(self):
-        res = []
+    def _nbOfNodePerLayer(self, inputLen):
+        res = [inputLen]
         for l in self._layers:
             res.append(l.size())
         return res
 
     def fit(self, data, targets):
-        nbOfNodesPerLayer = self._nbOfNodePerLayer()
+        labels = numpy.unique(targets)
+        self.addLayer(len(labels))
+        nbOfNodesPerLayer = self._nbOfNodePerLayer(len(data[0]))
         # use He weights initialization formula
         layerWeights = [numpy.random.rand(nbOfNodes) * numpy.sqrt(2 / (nbOfNodes - 1)) for nbOfNodes in nbOfNodesPerLayer]
-        print(layerWeights)
+        pred = []
+        for elem in data:
+            pred.append(self._feedForward(layerWeights, self._scaler.normalize(elem), labels))
+        print("First round prediction:")
+        print(pred)
+
+    def _feedForward(self, weights, values, labels):
+        for i, layer in enumerate(self._layers):
+            values = layer.run(weights[i], values)
+        return (labels[numpy.argmax(values)])
 
     def predict(self, toTest):
         pass
