@@ -35,24 +35,24 @@ def compare(res1, res2):
             print(mk, sk)
 
 ## Assignment 1
-# def main():
-#     dataset = datasets.load_iris()
-#     data = dataset.data[:100]
-#     target = dataset.target[:100]
-#     # data set for 2 class only
-#     trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
+def main():
+    dataset = datasets.load_iris()
+    data = dataset.data[:100]
+    target = dataset.target[:100]
+    # data set for 2 class only
+    trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
 
-#     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
-#     myNB.fit(trainingData, trainingLabel)
+    myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
+    myNB.fit(trainingData, trainingLabel)
 
-#     print("Running the cross validation:\n")
-#     print(crossValidation(10, dataset, myNB))
+    print("Running the cross validation:\n")
+    print(crossValidation(10, dataset, myNB))
 
-#     print("Running the cross validation with roc curve:\n")
-#     predictProba = myNB.predict_proba(testData)
-#     rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
+    # print("Running the cross validation with roc curve:\n")
+    # predictProba = myNB.predict_proba(testData)
+    # rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
 
-#     return 0
+    return 0
 
 def printHelp():
     print("USAGE:\t./main.py dataset")
@@ -93,21 +93,21 @@ def printHelp():
 #     return 0
 
 ## Assignment 3
-def main():
+# def main():
 
-    dataset = datasets.load_iris()
-    trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
+#     dataset = datasets.load_iris()
+#     trainingData, testData, trainingLabel, testLabel = partitionningDataset(dataset.data, dataset.target, 80)
 
-    # clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), random_state=1)
-    # clf.fit(trainingData, trainingLabel)
-    # pred = clf.predict(testData)
-    # print(evaluate(pred, testLabel))
-    nn = MyNeuralNetwork()
-    nn.addLayer(6, 'sigmoid')
-    nn.addLayer(10, 'sigmoid')
-    nn.addLayer(10, 'sigmoid')
-    nn.fit(trainingData, trainingLabel)
-    return 0
+#     # clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(15,), random_state=1)
+#     # clf.fit(trainingData, trainingLabel)
+#     # pred = clf.predict(testData)
+#     # print(evaluate(pred, testLabel))
+#     nn = MyNeuralNetwork()
+#     nn.addLayer(6, 'sigmoid')
+#     nn.addLayer(10, 'sigmoid')
+#     nn.addLayer(10, 'sigmoid')
+#     nn.fit(trainingData, trainingLabel)
+#     return 0
 
 if __name__ == "__main__":
     main()

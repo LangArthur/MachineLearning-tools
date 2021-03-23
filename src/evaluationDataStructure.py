@@ -27,7 +27,7 @@ class ConfusionMatrix():
         for value, label in zip(self.data, self.labels):
             res += str(label) + "\t"
             for v in value:
-                res += str(v) + "\t"
+                res += str(round(v, 2)) + "\t"
             res += '\n'
         return res
 

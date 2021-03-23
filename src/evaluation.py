@@ -13,6 +13,14 @@ import matplotlib.pyplot
 from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 from src.Utilities import sumColumn
 
+def splitDatasetForCV(data, target, i):
+    tmp = list(zip(data, target))
+    testingSet = tmp.pop(i)
+    testData, testTarget = testingSet[0], testingSet[1]
+    data, target = zip(*tmp)
+    return numpy.array(data), numpy.array(target), testData, testTarget
+    # trainingset = numpy.concatenate(tmp)
+
 ## crossValidation
 # apply a cross validation on a model
 # @param nbFolds nb of folds in the cross validation
@@ -28,21 +36,23 @@ def crossValidation(nbFolds, dataset, algorithm, drawRoc=False):
     # split in folds
     data = numpy.array_split(dataset.data[indices], nbFolds)
     target = numpy.array_split(dataset.target[indices], nbFolds)
-    # algorithm.fit(data[0], target[0])
+
     foldEvaluations = []
+
     # execute algorithm
-    for i in range(nbFolds - 1):
-        algorithm.fit(data[i + 1], target[i + 1])
+    for i in range(nbFolds):
+        cvData, cvTarget, cvTestData, cvTestTarget = splitDatasetForCV(data, target, i)
+        algorithm.fit(cvData, cvTarget)
         if (drawRoc):
-            predict = algorithm.predict_proba(data[0])
+            predict = algorithm.predict_proba(cvTestData)
             foldEvaluations.append(predict)
         else:
-            predict = algorithm.predict(data[0])
-            myeval = evaluate(predict, target[0])
+            predict = algorithm.predict(cvTestData)
+            myeval = evaluate(predict, cvTestTarget)
             foldEvaluations.append(myeval)
     if (drawRoc):
         merge = _mergeCrossValidationProba(foldEvaluations, nbFolds)
-        rocEvaluation(merge, target[0])
+        rocEvaluation(merge, cvTestTarget)
     else:
         return _mergeCrossValidationRes(foldEvaluations, nbFolds)
 
