@@ -18,34 +18,35 @@ def splitDatasetForCV(data, target, i):
     testingSet = tmp.pop(i)
     testData, testTarget = testingSet[0], testingSet[1]
     data, target = zip(*tmp)
-    return numpy.array(data), numpy.array(target), testData, testTarget
-    # trainingset = numpy.concatenate(tmp)
+    return numpy.concatenate(data), numpy.concatenate(target), testData, testTarget
 
 ## crossValidation
 # apply a cross validation on a model
 # @param nbFolds nb of folds in the cross validation
 # @dataset a dataset formated as the sklearn data set # TODO change this for more modularty
 # @algorithm algorithm that must heritate from AAlgorithm (see AAlgorithm file)
-def crossValidation(nbFolds, dataset, algorithm, drawRoc=False):
+def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
     # check nbFolds
     if (nbFolds < 2):
         raise ValueError("Error: can't do a cross validation with less than 2 folds")
     # shuffle the datas
-    indices = numpy.arange(dataset.data.shape[0])
+    indices = numpy.arange(data.shape[0])
     numpy.random.shuffle(indices)
     # split in folds
-    data = numpy.array_split(dataset.data[indices], nbFolds)
-    target = numpy.array_split(dataset.target[indices], nbFolds)
+    data = numpy.array_split(data[indices], nbFolds)
+    target = numpy.array_split(target[indices], nbFolds)
 
     foldEvaluations = []
-
     # execute algorithm
     for i in range(nbFolds):
+        # split test from training
         cvData, cvTarget, cvTestData, cvTestTarget = splitDatasetForCV(data, target, i)
         algorithm.fit(cvData, cvTarget)
+        # predict the proba in case you want a roc curve
         if (drawRoc):
             predict = algorithm.predict_proba(cvTestData)
             foldEvaluations.append(predict)
+        # predict lables if you want a basic crossvalidation
         else:
             predict = algorithm.predict(cvTestData)
             myeval = evaluate(predict, cvTestTarget)
@@ -63,37 +64,23 @@ def crossValidation(nbFolds, dataset, algorithm, drawRoc=False):
 def _mergeCrossValidationRes(resArray, nbFolds): #TODO rework the merge method (too much loop, could be more optimal -> check numpy method)
     res = EvaluationResult()
     res.confusionMatrix.reserve(resArray[0].confusionMatrix.labels)
-    matrixData = []
+
+    res.confusionMatrix.data = numpy.array(res.confusionMatrix.data)
+    res.confusionMatrix.labels = copy.copy(resArray[0].confusionMatrix.labels)
     # sum all the values from different evaluations
     for evalRes in resArray:
         res.accuracy += evalRes.accuracy
-        for key, value in evalRes.precision.items():
-            if (key in res.precision):
-                res.precision[key] += value
-            else:
-                res.precision[key] = value
-        for key, value in evalRes.recall.items():
-            if (key in res.recall):
-                res.recall[key] += value
-            else:
-                res.recall[key] = value
-        if (matrixData == []):
-            matrixData = evalRes.confusionMatrix.data
-        else:
-            for i in range(len(matrixData)):
-                for j in range(len(matrixData[0])):
-                    matrixData[i][j] += evalRes.confusionMatrix.data[i][j]
+        res.recall = {k: res.recall.get(k, 0) + evalRes.recall.get(k, 0) for k in set(res.recall) | set(evalRes.recall)}
+        res.precision = {k: res.precision.get(k, 0) + evalRes.precision.get(k, 0) for k in set(res.precision) | set(evalRes.precision)}
+        res.confusionMatrix.data += numpy.array(evalRes.confusionMatrix.data)
     # divide each elem by nb of folds
-    for i in range(len(matrixData)):
-        for j in range(len(matrixData[0])):
-            matrixData[i][j] /= nbFolds - 1
-    res.confusionMatrix.data = copy.copy(matrixData)
-    res.accuracy /= nbFolds - 1
-    for key, _ in res.precision.items():
-        res.precision[key] /= nbFolds - 1
+    res.accuracy /= nbFolds
     for key, _ in res.recall.items():
-        res.recall[key] /= nbFolds - 1
-    return res
+        res.recall[key] /= nbFolds
+    for key, _ in res.precision.items():
+        res.precision[key] /= nbFolds
+    res.confusionMatrix.data = res.confusionMatrix.data / nbFolds
+    return (res)
 
 ## _mergeCrossValidationProba
 # merge probas from a cross-validation
@@ -214,7 +201,7 @@ def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition = 100):
     fprList = []
 
     for threshold in thresholds:
-        tpr, fpr = _getTprAndFpr(probaPrediction, reality, threshold)
+        tpr, fpr = _getTprAndFpr(probaPrediction, reality, threshold, reality[0])
         tprList.append(tpr)
         fprList.append(fpr)
     return fprList, tprList
@@ -224,16 +211,18 @@ def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition = 100):
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param threshold threshold on which the roc is computed
-def _getTprAndFpr(probaPrediction, reality, threshold):
+def _getTprAndFpr(probaPrediction, reality, threshold, refTarget):
     tp = tn = fp = fn = 0
     for pred, real in zip(probaPrediction, reality):
-        if (pred > threshold):
-            if (real == 1):
+        # print(pred)
+        # if (pred > threshold):
+        if (numpy.max(pred) > threshold):
+            if (real == refTarget):
                 tp += 1
             else:
                 fp += 1
         else:
-            if (real == 0):
+            if (real != refTarget):
                 tn += 1
             else:
                 fn += 1
@@ -252,7 +241,10 @@ def _computeAuc(xList, yList):
     prev_y = None
     for x, y in zip(xList, yList):
         if (prev_x != None):
-            res += abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2)
+            # print(abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2))
+            # res += abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2)
+            # print((y + prev_y * abs(x - prev_x)) / 2)
+            res += (y + prev_y * abs(x - prev_x)) / 2
         prev_x = x
         prev_y = y
     return res
