@@ -195,8 +195,6 @@ def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=
 # @param sizePartition size of the partition for the roc evaluation
 # @param classToDisplay class you want to display
 def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition, classToDisplay):
-    if (len(numpy.unique(reality)) > 2):
-        raise RuntimeError("Error: Roc curve evaluation is not implemented for multiclasse yet.")
     thresholds = [i / sizePartition for i in range(-1, sizePartition + 1)]
     tprList = []
     fprList = []

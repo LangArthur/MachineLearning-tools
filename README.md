@@ -73,8 +73,7 @@ Several methods for evaluations are implemented. The most usefull are the follow
 
 - evaluate: return an object containing different values from the evaluation (see paragraphe on EvaluationResult)
 - crossValidation: do a cross-validation on the result with a specific algorithm. Note that the cross-validation handle multi-class classification (if the provide algorithm does).
-- rocEvaluation: draw the roc curve and compute the Area Under the Curve (AUC). This function do not handle multi-class classification.
-
+- rocEvaluation: draw the roc curve and compute the Area Under the Curve (AUC). I tried to implemanted the multi-class gestion for it but I'm not totally sure of the result.
 
 ## Authors
 

@@ -39,8 +39,8 @@ def compare(res1, res2):
 ## Assignment 1
 def main():
     dataset = datasets.load_iris()
-    data = dataset.data[:100]
-    target = dataset.target[:100]
+    data = dataset.data
+    target = dataset.target
     # data set for 2 class only
     trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
 
