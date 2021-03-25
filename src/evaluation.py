@@ -52,8 +52,7 @@ def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
             myeval = evaluate(predict, cvTestTarget)
             foldEvaluations.append(myeval)
     if (drawRoc):
-        merge = _mergeCrossValidationProba(foldEvaluations, nbFolds)
-        rocEvaluation(merge, cvTestTarget)
+        rocEvaluation(numpy.mean(foldEvaluations, axis=0), cvTestTarget)
     else:
         return _mergeCrossValidationRes(foldEvaluations, nbFolds)
 
@@ -61,7 +60,7 @@ def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
 # merge all the results from the cross-validation
 # @param resArray array with all the EvaluationResult
 # @param nb of folds give in the cross validation
-def _mergeCrossValidationRes(resArray, nbFolds): #TODO rework the merge method (too much loop, could be more optimal -> check numpy method)
+def _mergeCrossValidationRes(resArray, nbFolds):
     res = EvaluationResult()
     res.confusionMatrix.reserve(resArray[0].confusionMatrix.labels)
 
@@ -86,16 +85,17 @@ def _mergeCrossValidationRes(resArray, nbFolds): #TODO rework the merge method (
 # merge probas from a cross-validation
 # @param probaArray array with all the proba from the cross validation
 # @param nbFolds number of folds used in the cross-validation
-def _mergeCrossValidationProba(probaArray, nbFolds):
-    for i in range(len(probaArray)):
-        if i != 0:
-            for j in range(len(probaArray[i])):
-                for k in range(len(probaArray[i][j])):
-                    probaArray[0][j][k] += probaArray[i][j][k]
-    for i in range(len(probaArray[0])):
-        for j in range(len(probaArray[0][i])):
-            probaArray[0][i][j] /= nbFolds
-    return probaArray[0]
+# def _mergeCrossValidationProba(probaArray, nbFolds):
+#     print(probaArray.mean(axis=0))
+#     for i in range(len(probaArray)):
+#         if i != 0:
+#             for j in range(len(probaArray[i])):
+#                 for k in range(len(probaArray[i][j])):
+#                     probaArray[0][j][k] += probaArray[i][j][k]
+#     for i in range(len(probaArray[0])):
+#         for j in range(len(probaArray[0][i])):
+#             probaArray[0][i][j] /= nbFolds
+#     return probaArray[0]
 
 ## Partitionning a dataset
 # @param data data to be split
@@ -184,8 +184,13 @@ def evaluateRecall(confMatrix):
 # @param sizePartition size of the partition for the roc evaluation
 # @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
 def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
-    fprList, tprList = _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition)
-    auc = _computeAuc(fprList, tprList)
+    if (classToDisplay == None):
+        classToDisplay = reality[0]
+    fprList, tprList = _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition, classToDisplay)
+    if (not(0 in fprList and 0 in tprList)):
+        fprList.append(0)
+        tprList.append(0)
+    auc = abs(numpy.trapz(tprList, x=fprList))
     _rocGraph(fprList, tprList, round(auc, 2))
 
 ## _getRocEvaluationCoordinate
@@ -193,39 +198,38 @@ def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param sizePartition size of the partition for the roc evaluation
-def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition = 100):
+def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition, classToDisplay):
     if (len(numpy.unique(reality)) > 2):
         raise RuntimeError("Error: Roc curve evaluation is not implemented for multiclasse yet.")
-    thresholds = [i / sizePartition for i in range(0, sizePartition)]
+    thresholds = [i / sizePartition for i in range(-1, sizePartition + 1)]
     tprList = []
     fprList = []
+    labelList = numpy.unique(reality)
+    refLabelPos = numpy.where(labelList == classToDisplay)[0]
 
     for threshold in thresholds:
-        tpr, fpr = _getTprAndFpr(probaPrediction, reality, threshold, reality[0])
+        tpr, fpr = _getTprAndFpr(reality, numpy.greater_equal(probaPrediction[:,refLabelPos], threshold), classToDisplay)
         tprList.append(tpr)
         fprList.append(fpr)
     return fprList, tprList
 
 ## _getTprAndFpr
 # @return the True positive rate and the False positive rate
-# @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param threshold threshold on which the roc is computed
-def _getTprAndFpr(probaPrediction, reality, threshold, refTarget):
+def _getTprAndFpr(reality, boolThresholds, refTarget):
     tp = tn = fp = fn = 0
-    for pred, real in zip(probaPrediction, reality):
-        # print(pred)
-        # if (pred > threshold):
-        if (numpy.max(pred) > threshold):
+    for i, real in enumerate(reality):
+        if (boolThresholds[i]):
             if (real == refTarget):
                 tp += 1
             else:
                 fp += 1
         else:
-            if (real != refTarget):
-                tn += 1
-            else:
+            if (real == refTarget):
                 fn += 1
+            else:
+                tn += 1
     fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
     tpr = tp / (tp + fn) if (tp + fn) != 0 else 0
     return tpr, fpr
@@ -235,19 +239,19 @@ def _getTprAndFpr(probaPrediction, reality, threshold, refTarget):
 # I approximate the area between two values on the curve as a trapeze
 # @param xList all the x of the points
 # @param yList all the y of the points
-def _computeAuc(xList, yList):
-    res = 0
-    prev_x = None
-    prev_y = None
-    for x, y in zip(xList, yList):
-        if (prev_x != None):
-            # print(abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2))
-            # res += abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2)
-            # print((y + prev_y * abs(x - prev_x)) / 2)
-            res += (y + prev_y * abs(x - prev_x)) / 2
-        prev_x = x
-        prev_y = y
-    return res
+# def _computeAuc(xList, yList):
+#     res = 0
+#     prev_x = None
+#     prev_y = None
+#     for x, y in zip(xList, yList):
+#         if (prev_x != None):
+#             # print(abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2))
+#             # res += abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2)
+#             # print((y + prev_y * abs(x - prev_x)) / 2)
+#             res += (y + prev_y * abs(x - prev_x)) / 2
+#         prev_x = x
+#         prev_y = y
+#     return res
 
 ## _rocGraph
 # plot the graph for the roc curve
@@ -255,9 +259,6 @@ def _computeAuc(xList, yList):
 # @param y the false positive rate points
 # @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
 def _rocGraph(x, y, auc, classToDisplay=None):
-    # add the origin point to display the curve
-    x.append(0)
-    y.append(0)
     matplotlib.pyplot.ylim(-0.05, 1.05)
     matplotlib.pyplot.xlim(-0.05, 1.05)
     matplotlib.pyplot.scatter(x, y)
