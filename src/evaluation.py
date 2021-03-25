@@ -37,6 +37,7 @@ def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
     target = numpy.array_split(target[indices], nbFolds)
 
     foldEvaluations = []
+    foldsReality = [] #use only for the roc curve
     # execute algorithm
     for i in range(nbFolds):
         # split test from training
@@ -45,14 +46,15 @@ def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
         # predict the proba in case you want a roc curve
         if (drawRoc):
             predict = algorithm.predict_proba(cvTestData)
-            foldEvaluations.append(predict)
+            foldEvaluations.extend(predict)
+            foldsReality.extend(cvTestTarget)
         # predict lables if you want a basic crossvalidation
         else:
             predict = algorithm.predict(cvTestData)
             myeval = evaluate(predict, cvTestTarget)
             foldEvaluations.append(myeval)
     if (drawRoc):
-        rocEvaluation(numpy.mean(foldEvaluations, axis=0), cvTestTarget)
+        rocEvaluation(numpy.array(foldEvaluations), foldsReality)
     else:
         return _mergeCrossValidationRes(foldEvaluations, nbFolds)
 
