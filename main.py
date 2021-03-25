@@ -6,10 +6,12 @@
 # main.py
 #
 
-# from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import roc_auc_score
 # from sklearn.neighbors import KNeighborsClassifier
 # from sklearn.naive_bayes import GaussianNB
 from sklearn import datasets
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 
 import sys
@@ -43,15 +45,12 @@ def main():
     trainingData, testData, trainingLabel, testLabel = partitionningDataset(data, target, 80)
 
     myNB = MyNaiveBayes(NaiveBayseType.GAUSSIAN)
-    myNB.fit(trainingData, trainingLabel)
 
     print("Running the cross validation:\n")
-    print(crossValidation(10, dataset, myNB))
+    print(crossValidation(10, dataset.data, dataset.target, myNB))
 
-    # print("Running the cross validation with roc curve:\n")
-    # predictProba = myNB.predict_proba(testData)
-    # rocEvaluation(numpy.array(predictProba)[:,1], testLabel, 10, True)
-
+    print("Running the cross validation with roc curve:\n")
+    crossValidation(10, data, target, myNB, True)
     return 0
 
 def printHelp():

@@ -13,7 +13,14 @@ import matplotlib.pyplot
 from src.evaluationDataStructure import EvaluationResult, ConfusionMatrix
 from src.Utilities import sumColumn
 
-def splitDatasetForCV(data, target, i):
+
+## _splitDatasetForCV
+# split the data for an iteration of the cross validation
+# @param data: data from the dataset
+# @param target: labels associated with the data
+# @param i: number of the current iteration
+# @return return a data for training with their associated labels, and data for testing with their associated labels
+def _splitDatasetForCV(data, target, i):
     tmp = list(zip(data, target))
     testingSet = tmp.pop(i)
     testData, testTarget = testingSet[0], testingSet[1]
@@ -22,9 +29,11 @@ def splitDatasetForCV(data, target, i):
 
 ## crossValidation
 # apply a cross validation on a model
-# @param nbFolds nb of folds in the cross validation
-# @dataset a dataset formated as the sklearn data set # TODO change this for more modularty
-# @algorithm algorithm that must heritate from AAlgorithm (see AAlgorithm file)
+# @param nbFolds: nb of folds in the cross validation
+# @param data data: from the dataset
+# @param target: target associated with the data
+# @param algorithm: algorithm that must heritate from AAlgorithm (see AAlgorithm file)
+# @param drawRoc: boolean if the crossvalidation should display Roc curve
 def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
     # check nbFolds
     if (nbFolds < 2):
@@ -41,7 +50,7 @@ def crossValidation(nbFolds, data, target, algorithm, drawRoc=False):
     # execute algorithm
     for i in range(nbFolds):
         # split test from training
-        cvData, cvTarget, cvTestData, cvTestTarget = splitDatasetForCV(data, target, i)
+        cvData, cvTarget, cvTestData, cvTestTarget = _splitDatasetForCV(data, target, i)
         algorithm.fit(cvData, cvTarget)
         # predict the proba in case you want a roc curve
         if (drawRoc):
@@ -80,28 +89,12 @@ def _mergeCrossValidationRes(resArray, nbFolds):
         res.recall[key] /= nbFolds
     for key, _ in res.precision.items():
         res.precision[key] /= nbFolds
-    res.confusionMatrix.data = res.confusionMatrix.data / nbFolds
     return (res)
-
-## _mergeCrossValidationProba
-# merge probas from a cross-validation
-# @param probaArray array with all the proba from the cross validation
-# @param nbFolds number of folds used in the cross-validation
-# def _mergeCrossValidationProba(probaArray, nbFolds):
-#     print(probaArray.mean(axis=0))
-#     for i in range(len(probaArray)):
-#         if i != 0:
-#             for j in range(len(probaArray[i])):
-#                 for k in range(len(probaArray[i][j])):
-#                     probaArray[0][j][k] += probaArray[i][j][k]
-#     for i in range(len(probaArray[0])):
-#         for j in range(len(probaArray[0][i])):
-#             probaArray[0][i][j] /= nbFolds
-#     return probaArray[0]
 
 ## Partitionning a dataset
 # @param data data to be split
 # @param target class of the associated data
+# @param percent: percentage of data in the training set
 # @return return the training data (first part), the test data (second part), the training labels and the test label
 def partitionningDataset(data, target, percent):
     if (len(data) < 4):
@@ -184,7 +177,7 @@ def evaluateRecall(confMatrix):
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param sizePartition size of the partition for the roc evaluation
-# @param classToDisplay class you want to display if the prediction has multiple class. Note that this parameter is not used for the moment
+# @param classToDisplay class you want to display
 def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=None):
     if (classToDisplay == None):
         classToDisplay = reality[0]
@@ -200,6 +193,7 @@ def rocEvaluation(probaPrediction, reality, sizePartition = 100, classToDisplay=
 # @param probaPrediction probability of the prediction.
 # @param reality list of the real class
 # @param sizePartition size of the partition for the roc evaluation
+# @param classToDisplay class you want to display
 def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition, classToDisplay):
     if (len(numpy.unique(reality)) > 2):
         raise RuntimeError("Error: Roc curve evaluation is not implemented for multiclasse yet.")
@@ -217,8 +211,9 @@ def _getRocEvaluationCoordinate(probaPrediction, reality, sizePartition, classTo
 
 ## _getTprAndFpr
 # @return the True positive rate and the False positive rate
-# @param reality list of the real class
-# @param threshold threshold on which the roc is computed
+# @param reality: list of the real class
+# @param boolThresholds: array of boolean corresponding to the probability greater than the threshold or not
+# @param refTarget: class on wich the tpr and fpr are based on
 def _getTprAndFpr(reality, boolThresholds, refTarget):
     tp = tn = fp = fn = 0
     for i, real in enumerate(reality):
@@ -235,25 +230,6 @@ def _getTprAndFpr(reality, boolThresholds, refTarget):
     fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
     tpr = tp / (tp + fn) if (tp + fn) != 0 else 0
     return tpr, fpr
-
-## _computeAuc
-# compute the area under the curve
-# I approximate the area between two values on the curve as a trapeze
-# @param xList all the x of the points
-# @param yList all the y of the points
-# def _computeAuc(xList, yList):
-#     res = 0
-#     prev_x = None
-#     prev_y = None
-#     for x, y in zip(xList, yList):
-#         if (prev_x != None):
-#             # print(abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2))
-#             # res += abs(x - prev_x) * prev_y + ((abs(x - prev_x) * abs(y - prev_y)) / 2)
-#             # print((y + prev_y * abs(x - prev_x)) / 2)
-#             res += (y + prev_y * abs(x - prev_x)) / 2
-#         prev_x = x
-#         prev_y = y
-#     return res
 
 ## _rocGraph
 # plot the graph for the roc curve
