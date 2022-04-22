@@ -74,7 +74,6 @@ class MyKNeirestNeighbor(AAlgorithm):
             dist.sort()
             for i in range(0, self.n):
                 sampleRes += dist[i][1]
-            # print(sampleRes / self.n, round(sampleRes / self.n))
             res.append(int(round(sampleRes / self.n, 0)))
         return res
 

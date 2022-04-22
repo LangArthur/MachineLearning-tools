@@ -2,7 +2,8 @@
 
 Implementation of different tools for machine learning.
 
-This project is for a pedagogic purpose and was developp through my different projects in machine learning course.
+This project is for a pedagogic purpose and was developp through my different projects / assignments in machine learning course.
+There are also some algorithms that was developped later.
 
 ## Install
 
@@ -18,7 +19,7 @@ pip install -r requirement.txt
 
 All the algorithm implementation follow the AAlgorithm model.
 
-This model has two main method:
+This model has three main methods:
 - fit: it prepare your classifier with a training dataset
 - predict: give predictions for the given values
 - predict_proba: give the probability of the prediction
@@ -50,11 +51,12 @@ Note that this algorithm handle multi-class problem.
 
 ### Decision Tree Classifier
 
-Implementation of a tree classifier. It evaluate the impurity by using the Gini ratio. For the moment, the algorithm only handle numerical data.
+Implementation of a tree classifier. It evaluate the impurity by using the Gini ratio.
 The decision tree classifier implement the methods from AAlgorithm. Note that it has another function to display the tree.
 
 ### Multy-layer Neural Network
 
+/!\ Work in progress
 Implmentation of a neural network classifier. It uses backpropagation for adjusting the weights.
 
 ### Evaluation
